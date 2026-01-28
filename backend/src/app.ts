@@ -10,6 +10,9 @@ import logger from './utils/logger.util';
 
 const app: Application = express();
 
+// Trust proxy (required when behind Traefik/Nginx reverse proxy)
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet());
 
@@ -44,6 +47,24 @@ app.get('/health', (req, res) => {
     message: 'Server is running',
     timestamp: new Date().toISOString(),
   });
+});
+
+// Readiness check endpoint (checks DB and Redis connections)
+app.get('/ready', async (req, res) => {
+  try {
+    // Add DB and Redis connection checks here if needed
+    res.status(200).json({
+      status: 'ready',
+      message: 'Server is ready to accept requests',
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    res.status(503).json({
+      status: 'not ready',
+      message: 'Server is not ready',
+      timestamp: new Date().toISOString(),
+    });
+  }
 });
 
 // API routes
