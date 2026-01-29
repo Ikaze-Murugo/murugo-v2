@@ -31,13 +31,18 @@ This guide provides step-by-step instructions for deploying the Rwanda Real Esta
 - GitHub integration
 - Automatic deployments
 
-**Option 3: Fly.io**
+**Option 3: Vercel + Supabase**
+- Serverless API on Vercel; PostgreSQL on Supabase (free tiers)
+- No Redis/Socket.io on Vercel; use Supabase Realtime or polling for real-time
+- See [Vercel + Supabase deployment guide](./VERCEL_SUPABASE_DEPLOYMENT.md)
+
+**Option 4: Fly.io**
 - Free tier with 3 shared VMs
 - PostgreSQL included
 - Global deployment
 - Docker-based deployments
 
-**Option 4: Heroku (Limited Free Tier)**
+**Option 5: Heroku (Limited Free Tier)**
 - Free tier available with credit card
 - PostgreSQL add-on available
 - Easy deployment via Git

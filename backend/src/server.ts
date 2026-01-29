@@ -24,9 +24,11 @@ async function startServer() {
     await connectDatabase();
     logger.info('✅ Database connected successfully');
 
-    // Connect to Redis
+    // Connect to Redis (optional; skipped when REDIS_HOST not set, e.g. Vercel)
     await connectRedis();
-    logger.info('✅ Redis connected successfully');
+    if (process.env.REDIS_HOST) {
+      logger.info('✅ Redis connected successfully');
+    }
 
     // Start listening
     server.listen(PORT, () => {
