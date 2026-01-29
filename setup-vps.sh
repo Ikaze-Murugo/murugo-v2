@@ -28,10 +28,9 @@ print_info() {
   echo -e "${YELLOW}ℹ $1${NC}"
 }
 
-# Check if running as root
+# Allow root (common on VPS); prefer non-root when possible
 if [ "$EUID" -eq 0 ]; then
-  print_error "Please do not run this script as root. Run as a regular user with sudo privileges."
-  exit 1
+  print_info "Running as root. Docker will be available for root."
 fi
 
 print_info "This script will install Docker and Docker Compose on your VPS"
@@ -78,10 +77,14 @@ sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plug
 print_success "Docker installed"
 echo ""
 
-# Add current user to docker group
-print_info "Adding user to docker group..."
-sudo usermod -aG docker $USER
-print_success "User added to docker group (logout and login again to apply)"
+# Add current user to docker group (skip when root; root already has access)
+if [ "$EUID" -ne 0 ]; then
+  print_info "Adding user to docker group..."
+  sudo usermod -aG docker $USER
+  print_success "User added to docker group (logout and login again to apply)"
+else
+  print_info "Running as root; docker group step skipped."
+fi
 echo ""
 
 # Configure firewall
