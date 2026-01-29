@@ -10,7 +10,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "migrate": "ts-node src/database/migrations/run.ts",
+    "migrate": "node dist/database/migrations/run.js",
+    "migrate:dev": "ts-node src/database/migrations/run.ts",
     "seed": "ts-node src/database/seeders/run.ts",
     "lint": "eslint . --ext .ts",
     "format": "prettier --write \"src/**/*.ts\""
