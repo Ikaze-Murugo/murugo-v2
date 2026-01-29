@@ -31,7 +31,9 @@ export const AppDataSource = new DataSource({
     PropertyView,
     Notification,
   ],
-  migrations: ['src/database/migrations/*.ts'],
+  migrations: process.env.NODE_ENV === 'production' 
+    ? ['dist/database/migrations/*.js']
+    : ['src/database/migrations/*.ts'],
   subscribers: [],
   ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
 });
