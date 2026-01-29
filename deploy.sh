@@ -15,10 +15,9 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# Check if running as root
+# Allow root (common on VPS); prefer non-root when possible
 if [ "$EUID" -eq 0 ]; then
-  echo -e "${RED}Please do not run this script as root. Run as a regular user with sudo privileges.${NC}"
-  exit 1
+  echo -e "${YELLOW}ℹ Running as root.${NC}"
 fi
 
 # Function to print colored messages
