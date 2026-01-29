@@ -56,8 +56,10 @@ sudo apt-get install -y \
 print_success "Prerequisites installed"
 echo ""
 
-# Add Docker's official GPG key
+# Add Docker's official GPG key (remove any conflicting Docker repo config first)
 print_info "Adding Docker repository..."
+sudo rm -f /etc/apt/sources.list.d/docker.list /etc/apt/sources.list.d/docker.list.save 2>/dev/null
+sudo rm -f /etc/apt/keyrings/docker.asc /etc/apt/keyrings/docker.gpg 2>/dev/null
 sudo install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 sudo chmod a+r /etc/apt/keyrings/docker.gpg
