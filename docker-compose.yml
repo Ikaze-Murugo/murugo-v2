@@ -92,6 +92,7 @@ services:
       dockerfile: Dockerfile
     container_name: rwanda-backend
     restart: unless-stopped
+    command: ["node", "dist/server.js"]
     env_file:
       - ./backend/.env.production
     environment:
