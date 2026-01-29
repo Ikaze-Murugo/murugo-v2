@@ -25,6 +25,10 @@ RUN if [ -f package-lock.json ]; then npm ci --omit=dev; else npm install --omit
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
 
+# Copy entrypoint script
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 # Set environment variables
 ENV NODE_ENV=production
 ENV PORT=5000
@@ -35,6 +39,9 @@ EXPOSE 5000
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD node -e "require('http').get('http://localhost:5000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+
+# Use entrypoint script
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
 # Start the application
 CMD ["node", "dist/server.js"]

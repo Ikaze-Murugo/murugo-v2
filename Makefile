@@ -19,6 +19,7 @@ help:
 	@echo "  make shell-db       - Open PostgreSQL shell"
 	@echo "  make backup         - Backup database"
 	@echo "  make restore        - Restore database from backup"
+	@echo "  make rebuild-backend - Completely rebuild backend (fixes command issues)"
 	@echo "  make clean          - Stop and remove all containers"
 	@echo ""
 
@@ -106,6 +107,10 @@ build:
 	@echo "Building Docker images..."
 	@sudo docker compose build --no-cache
 	@echo "Build completed"
+
+# Rebuild backend only (clean)
+rebuild-backend:
+	@./rebuild-backend.sh
 
 # Update application
 update:
