@@ -42,19 +42,11 @@ const MigrationDataSource = new DataSource({
   ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
 });
 
-async function run(): Promise<void> {
-  try {
-    await MigrationDataSource.initialize();
-    console.log('Database connection established');
-    await MigrationDataSource.synchronize();
-    console.log('Migration complete');
-    console.log('Tables created/updated successfully');
-    await MigrationDataSource.destroy();
-    process.exit(0);
-  } catch (error) {
-    console.error('Migration failed:', error);
-    process.exit(1);
-  }
-}
+/**
+ * DEPRECATED: This file is no longer used.
+ * Use migrate.ts instead: npm run migrate
+ * 
+ * This file is kept for backward compatibility but does nothing.
+ */
 
-run();
+export {}; // Make this a module to prevent accidental execution
