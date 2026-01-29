@@ -480,6 +480,46 @@ Login with credentials from `.env` (`TRAEFIK_DASHBOARD_AUTH`).
    sudo docker compose exec backend env | grep JWT_SECRET
    ```
 
+### Backend runs migration then restarts (never starts server)
+
+**Symptoms:** `sudo docker compose ps` shows backend as `Restarting (0)`; logs show only "Migration complete", "Tables created/updated successfully", "Database connection established" in a loop. No "Server running on port 5000".
+
+**Cause:** The container is running the migration script (which exits with code 0) instead of the API server. This usually means the VPS has an old `docker-compose.yml` or an old image without the correct `command`.
+
+**Solutions:**
+
+1. **On the VPS, ensure you have the latest code:**
+   ```bash
+   cd ~/murugo-v2   # or your project directory
+   git pull origin main
+   ```
+
+2. **Confirm the backend service has the correct command** in `docker-compose.yml`:
+   ```bash
+   grep -A2 "backend:" docker-compose.yml
+   # Should show: command: ["node", "dist/server.js"]
+   ```
+   If you see `command: ["npm", "run", "migrate"]` or no `command` and the container still runs migration, continue below.
+
+3. **Rebuild the backend image (no cache) and recreate the container:**
+   ```bash
+   sudo docker compose build --no-cache backend
+   sudo docker compose up -d --force-recreate backend
+   ```
+
+4. **Check that the server is running:**
+   ```bash
+   sudo docker compose logs --tail 20 backend
+   ```
+   You should see "Server running on port 5000" and no repeated "Migration complete". Then:
+   ```bash
+   curl -s https://api.murugohomes.com/health
+   ```
+   Should return JSON with `"status":"ok"`.
+
+**Note:** Run migrations once manually when needed:  
+`sudo docker compose run --rm backend npm run migrate`
+
 ### Database Connection Errors
 
 **Symptoms:** Backend logs show "Error connecting to database".
