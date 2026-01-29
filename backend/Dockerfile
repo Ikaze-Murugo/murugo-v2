@@ -4,9 +4,9 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-# Install dependencies
+# Install dependencies (use npm install when package-lock.json is missing)
 COPY package.json package-lock.json* ./
-RUN npm ci
+RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
 # Copy source code and build
 COPY tsconfig.json ./
@@ -20,7 +20,7 @@ WORKDIR /app
 
 # Install production dependencies only
 COPY package.json package-lock.json* ./
-RUN npm ci --omit=dev && npm cache clean --force
+RUN if [ -f package-lock.json ]; then npm ci --omit=dev; else npm install --omit=dev; fi && npm cache clean --force
 
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
