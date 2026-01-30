@@ -1,0 +1,160 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Warm, Anthropic-inspired light mode */
+    --background: 45 25% 97%; /* Warm cream */
+    --foreground: 0 0% 10%; /* Almost black */
+
+    --card: 0 0% 100%; /* Pure white */
+    --card-foreground: 0 0% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 10%;
+
+    --primary: 195 100% 43%; /* Rwanda blue */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 45 25% 93%; /* Light cream */
+    --secondary-foreground: 0 0% 10%;
+
+    --muted: 45 20% 90%;
+    --muted-foreground: 0 0% 40%;
+
+    --accent: 151 100% 33%; /* Rwanda green */
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 45 15% 85%;
+    --input: 45 15% 85%;
+    --ring: 195 100% 43%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 0 0% 10%;
+    --foreground: 0 0% 95%;
+
+    --card: 0 0% 12%;
+    --card-foreground: 0 0% 95%;
+
+    --popover: 0 0% 12%;
+    --popover-foreground: 0 0% 95%;
+
+    --primary: 195 100% 43%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 95%;
+
+    --muted: 0 0% 20%;
+    --muted-foreground: 0 0% 60%;
+
+    --accent: 151 100% 33%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 195 100% 43%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  /* Better font rendering */
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* Focus visible styles */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+}
+
+@layer utilities {
+  /* Text balance for headings */
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  /* Container queries */
+  .container-query {
+    container-type: inline-size;
+  }
+  
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-rwanda-blue via-rwanda-green to-rwanda-yellow bg-clip-text text-transparent;
+  }
+  
+  /* Glass morphism */
+  .glass {
+    @apply backdrop-blur-md bg-white/80 dark:bg-black/80 border border-white/20;
+  }
+  
+  /* Smooth transitions */
+  .transition-smooth {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-muted;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-muted-foreground/30 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-muted-foreground/50;
+}
+
+/* Selection */
+::selection {
+  @apply bg-primary/20 text-foreground;
+}
+
+/* Loading skeleton */
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton {
+  @apply bg-gradient-to-r from-muted via-muted-foreground/10 to-muted;
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+}
