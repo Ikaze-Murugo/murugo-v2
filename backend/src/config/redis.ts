@@ -24,14 +24,19 @@ if (redisClient) {
 
 export const connectRedis = async (): Promise<void> => {
   if (!redisClient) {
+    console.log('⚠️  Redis skipped (REDIS_HOST not set)');
     logger.info('Redis skipped (REDIS_HOST not set)');
     return;
   }
   try {
+    console.log('🔌 Connecting to Redis...');
     await redisClient.connect();
+    console.log('✅ Redis connected successfully');
+    logger.info('Redis connected successfully');
   } catch (error) {
-    logger.error('Failed to connect to Redis:', error);
-    throw error;
+    console.error('⚠️  Failed to connect to Redis (non-fatal):', error);
+    logger.error('Failed to connect to Redis (non-fatal):', error);
+    // Don't throw - Redis is optional, server can run without it
   }
 };
 

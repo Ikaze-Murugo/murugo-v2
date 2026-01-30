@@ -20,23 +20,33 @@ initializeSocket(server);
 // Start server
 async function startServer() {
   try {
+    console.log('\n🚀 Starting server initialization...');
+    
     // Connect to database
+    console.log('📊 Connecting to database...');
     await connectDatabase();
+    console.log('✅ Database connected successfully');
     logger.info('✅ Database connected successfully');
 
     // Connect to Redis (optional; skipped when REDIS_HOST not set, e.g. Vercel)
+    console.log('🔄 Connecting to Redis...');
     await connectRedis();
-    if (process.env.REDIS_HOST) {
-      logger.info('✅ Redis connected successfully');
-    }
+    console.log('✅ Redis connection attempt completed');
 
     // Start listening
+    console.log(`🌐 Starting HTTP server on port ${PORT}...`);
     server.listen(PORT, () => {
+      console.log(`\n========================================`);
+      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`📍 Environment: ${process.env.NODE_ENV}`);
+      console.log(`🌐 API URL: ${process.env.API_URL || 'http://localhost:' + PORT}`);
+      console.log(`========================================\n`);
       logger.info(`🚀 Server running on port ${PORT}`);
       logger.info(`📍 Environment: ${process.env.NODE_ENV}`);
       logger.info(`🌐 API URL: ${process.env.API_URL}`);
     });
   } catch (error) {
+    console.error('\n❌ Failed to start server:', error);
     logger.error('❌ Failed to start server:', error);
     process.exit(1);
   }
