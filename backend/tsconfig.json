@@ -27,6 +27,8 @@
     "node_modules",
     "dist",
     "**/*.test.ts",
+    "**/*.backup",
+    "**/controllers_backup/**",
     "src/database/migrations/**/*.ts"
   ]
 }

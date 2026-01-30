@@ -15,3 +15,6 @@ coverage
 *.swp
 *.swo
 *~
+# Exclude backup files and backup controllers from build (avoids TS errors)
+**/*.backup
+**/controllers_backup

@@ -67,22 +67,22 @@ export class User {
   isVerified: boolean;
 
   @Column({ nullable: true })
-  verificationToken: string;
+  verificationToken: string | null;
 
   @Column({ nullable: true })
-  resetPasswordToken: string;
+  resetPasswordToken: string | null;
 
   @Column({ nullable: true })
-  resetPasswordExpire: Date;
+  resetPasswordExpire: Date | null;
 
   @Column({ nullable: true })
-  whatsappNumber: string;
+  whatsappNumber: string | null;
 
   @Column({ default: true })
   isActive: boolean;
 
   @Column({ nullable: true })
-  lastLogin: Date;
+  lastLogin: Date | null;
 
   @OneToOne(() => Profile, (profile) => profile.user, { cascade: true })
   profile: Profile;
