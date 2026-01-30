@@ -68,53 +68,33 @@
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
   body {
-    @apply bg-background text-foreground;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
     font-feature-settings: "rlig" 1, "calt" 1;
-  }
-  
-  /* Smooth scrolling */
-  html {
-    scroll-behavior: smooth;
-  }
-  
-  /* Better font rendering */
-  body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
   
-  /* Focus visible styles */
+  html {
+    scroll-behavior: smooth;
+  }
+  
   *:focus-visible {
-    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+    outline: none;
+    box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
   }
 }
 
 @layer utilities {
-  /* Text balance for headings */
   .text-balance {
     text-wrap: balance;
   }
   
-  /* Container queries */
   .container-query {
     container-type: inline-size;
   }
   
-  /* Gradient text */
-  .gradient-text {
-    @apply bg-gradient-to-r from-rwanda-blue via-rwanda-green to-rwanda-yellow bg-clip-text text-transparent;
-  }
-  
-  /* Glass morphism */
-  .glass {
-    @apply backdrop-blur-md bg-white/80 dark:bg-black/80 border border-white/20;
-  }
-  
-  /* Smooth transitions */
   .transition-smooth {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
@@ -127,34 +107,19 @@
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-muted;
+  background-color: hsl(var(--muted));
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-muted-foreground/30 rounded-full;
+  background-color: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-muted-foreground/50;
+  background-color: hsl(var(--muted-foreground) / 0.5);
 }
 
-/* Selection */
 ::selection {
-  @apply bg-primary/20 text-foreground;
-}
-
-/* Loading skeleton */
-@keyframes skeleton-loading {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
-}
-
-.skeleton {
-  @apply bg-gradient-to-r from-muted via-muted-foreground/10 to-muted;
-  background-size: 200% 100%;
-  animation: skeleton-loading 1.5s ease-in-out infinite;
+  background-color: hsl(var(--primary) / 0.2);
+  color: hsl(var(--foreground));
 }

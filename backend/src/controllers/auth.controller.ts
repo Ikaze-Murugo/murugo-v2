@@ -285,8 +285,8 @@ export const resetPassword = async (req: AuthRequest, res: Response): Promise<vo
 
     // Update password
     user.password = newPassword; // Will be hashed by @BeforeUpdate hook
-    user.resetPasswordToken = null;
-    user.resetPasswordExpire = null;
+    user.resetPasswordToken = null as any;
+    user.resetPasswordExpire = null as any;
     await userRepository.save(user);
 
     successResponse(res, {}, 'Password reset successful');
