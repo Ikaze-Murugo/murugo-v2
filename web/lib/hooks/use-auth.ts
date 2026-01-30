@@ -11,7 +11,9 @@ export function useAuth() {
   const login = async (data: LoginRequest) => {
     try {
       const response = await authApi.login(data);
-      setAuth(response.user, response.accessToken, response.refreshToken);
+      // Backend sends 'token', not 'accessToken'
+      const accessToken = response.token || response.accessToken || "";
+      setAuth(response.user, accessToken, response.refreshToken);
       toast({
         title: "Success",
         description: "Logged in successfully",
@@ -31,7 +33,9 @@ export function useAuth() {
   const register = async (data: RegisterRequest) => {
     try {
       const response = await authApi.register(data);
-      setAuth(response.user, response.accessToken, response.refreshToken);
+      // Backend sends 'token', not 'accessToken'
+      const accessToken = response.token || response.accessToken || "";
+      setAuth(response.user, accessToken, response.refreshToken);
       toast({
         title: "Success",
         description: "Account created successfully",

@@ -43,11 +43,13 @@ apiClient.interceptors.response.use(
         // Try to refresh token
         const refreshToken = localStorage.getItem("refreshToken");
         if (refreshToken) {
-          const response = await axios.post(`${API_URL}/api/v1/auth/refresh`, {
+          // Backend endpoint is /auth/refresh-token, not /auth/refresh
+          const response = await axios.post(`${API_URL}/api/v1/auth/refresh-token`, {
             refreshToken,
           });
 
-          const { accessToken } = response.data.data;
+          // Backend sends 'token', not 'accessToken'
+          const accessToken = response.data.data.token || response.data.data.accessToken;
           localStorage.setItem("accessToken", accessToken);
 
           // Retry original request with new token

@@ -1,11 +1,30 @@
-// User types
+// ========================================
+// USER TYPES
+// ========================================
+
+export enum UserRole {
+  SEEKER = "seeker",
+  LISTER = "lister",
+  ADMIN = "admin",
+}
+
+export enum ProfileType {
+  INDIVIDUAL = "individual",
+  COMMISSIONER = "commissioner",
+  COMPANY = "company",
+}
+
 export interface User {
   id: string;
   email: string;
   phone: string;
-  name: string;
-  role: "user" | "lister" | "admin";
+  role: UserRole;
+  profileType?: ProfileType;
+  isEmailVerified: boolean;
+  isPhoneVerified: boolean;
   isVerified: boolean;
+  whatsappNumber?: string;
+  profile?: Profile;
   createdAt: string;
   updatedAt: string;
 }
@@ -13,19 +32,23 @@ export interface User {
 export interface Profile {
   id: string;
   userId: string;
+  name?: string;
   avatarUrl?: string;
   bio?: string;
-  whatsappNumber?: string;
-  isCommissioner: boolean;
   companyName?: string;
+  licenseNumber?: string;
   createdAt: string;
   updatedAt: string;
 }
 
-// Auth types
+// ========================================
+// AUTH TYPES
+// ========================================
+
 export interface AuthResponse {
   user: User;
-  accessToken: string;
+  token: string; // Backend sends 'token', not 'accessToken'
+  accessToken?: string; // Keep for backwards compatibility
   refreshToken: string;
 }
 
@@ -38,34 +61,74 @@ export interface RegisterRequest {
   email: string;
   phone: string;
   password: string;
-  name: string;
+  role?: UserRole;
+  profileType?: ProfileType;
 }
 
-// Property types
-export type PropertyType = "house" | "apartment" | "office" | "land" | "commercial";
-export type PropertyStatus = "available" | "rented" | "sold" | "pending";
+// ========================================
+// PROPERTY TYPES
+// ========================================
+
+export enum PropertyType {
+  HOUSE = "house",
+  APARTMENT = "apartment",
+  OFFICE = "office",
+  LAND = "land",
+  STUDIO = "studio",
+  VILLA = "villa",
+  COMMERCIAL = "commercial",
+}
+
+export enum TransactionType {
+  RENT = "rent",
+  SALE = "sale",
+  LEASE = "lease",
+}
+
+export enum PropertyStatus {
+  AVAILABLE = "available",
+  RENTED = "rented",
+  SOLD = "sold",
+  PENDING = "pending",
+}
+
+export interface Location {
+  district: string;
+  sector: string;
+  cell: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+}
 
 export interface Property {
   id: string;
-  userId: string;
   title: string;
   description: string;
-  type: PropertyType;
+  propertyType: PropertyType;
+  transactionType: TransactionType;
   price: number;
-  location: string;
-  address?: string;
+  currency: string;
+  location: Location;
+  amenities: string[];
   bedrooms?: number;
   bathrooms?: number;
-  area?: number;
-  amenities?: string[];
+  sizeSqm?: number;
+  parkingSpaces?: number;
+  floorNumber?: number;
+  yearBuilt?: number;
+  availabilityDate?: string;
   status: PropertyStatus;
-  viewCount: number;
+  viewsCount: number;
   contactCount: number;
   shareCount: number;
+  isFeatured: boolean;
+  featuredUntil?: string;
+  listerId: string;
+  lister?: User;
+  media?: PropertyMedia[];
   createdAt: string;
   updatedAt: string;
-  user?: User;
-  media?: PropertyMedia[];
 }
 
 export interface PropertyMedia {
@@ -73,79 +136,128 @@ export interface PropertyMedia {
   propertyId: string;
   url: string;
   type: "image" | "video";
+  caption?: string;
+  order: number;
   createdAt: string;
 }
 
-// User preferences
-export interface UserPreference {
-  id: string;
-  userId: string;
-  propertyTypes?: PropertyType[];
-  budgetMin?: number;
-  budgetMax?: number;
-  preferredLocations?: string[];
+export interface CreatePropertyRequest {
+  title: string;
+  description: string;
+  propertyType: PropertyType;
+  transactionType: TransactionType;
+  price: number;
+  currency?: string;
+  location: Location;
+  amenities: string[];
   bedrooms?: number;
   bathrooms?: number;
-  requiredAmenities?: string[];
-  createdAt: string;
-  updatedAt: string;
+  sizeSqm?: number;
+  parkingSpaces?: number;
+  floorNumber?: number;
+  yearBuilt?: number;
+  availabilityDate?: string;
 }
 
-// Favorite
+export interface UpdatePropertyRequest extends Partial<CreatePropertyRequest> {
+  status?: PropertyStatus;
+}
+
+// ========================================
+// FAVORITE TYPES
+// ========================================
+
 export interface Favorite {
   id: string;
   userId: string;
   propertyId: string;
-  createdAt: string;
   property?: Property;
+  createdAt: string;
 }
 
-// Review
+// ========================================
+// REVIEW TYPES
+// ========================================
+
 export interface Review {
   id: string;
   userId: string;
   propertyId: string;
   rating: number;
-  comment?: string;
+  comment: string;
+  user?: User;
+  property?: Property;
   createdAt: string;
   updatedAt: string;
-  user?: User;
 }
 
-// API response wrapper
-export interface ApiResponse<T> {
-  status: "success" | "error";
-  message?: string;
-  data?: T;
+export interface CreateReviewRequest {
+  propertyId: string;
+  rating: number;
+  comment: string;
 }
 
-// Pagination
-export interface PaginationParams {
-  page?: number;
-  limit?: number;
+// ========================================
+// USER PREFERENCE TYPES
+// ========================================
+
+export interface UserPreference {
+  id: string;
+  userId: string;
+  budgetMin?: number;
+  budgetMax?: number;
+  preferredPropertyTypes: PropertyType[];
+  preferredLocations: string[];
+  requiredAmenities: string[];
+  minBedrooms?: number;
+  minBathrooms?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ========================================
+// PAGINATION TYPES
+// ========================================
+
+export interface PaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
 }
 
 export interface PaginatedResponse<T> {
   data: T[];
-  pagination: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  };
+  pagination: PaginationMeta;
 }
 
-// Property filters
-export interface PropertyFilters extends PaginationParams {
+// ========================================
+// FILTER TYPES
+// ========================================
+
+export interface PropertyFilters {
   search?: string;
-  type?: PropertyType;
+  propertyType?: PropertyType;
+  transactionType?: TransactionType;
   minPrice?: number;
   maxPrice?: number;
   location?: string;
   bedrooms?: number;
   bathrooms?: number;
   amenities?: string[];
-  status?: PropertyStatus;
-  sortBy?: "price" | "createdAt" | "viewCount";
+  sortBy?: "price" | "createdAt" | "viewsCount";
   sortOrder?: "asc" | "desc";
+  page?: number;
+  limit?: number;
+}
+
+// ========================================
+// API RESPONSE TYPES
+// ========================================
+
+export interface ApiResponse<T> {
+  status: "success" | "error";
+  message: string;
+  data?: T;
+  error?: string;
 }

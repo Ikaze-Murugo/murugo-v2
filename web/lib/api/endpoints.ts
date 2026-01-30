@@ -89,17 +89,19 @@ export const propertyApi = {
 
 export const userApi = {
   getProfile: async () => {
-    const response = await apiClient.get<{ data: User }>("/user/profile");
+    // Backend uses /users/profile, not /user/profile
+    const response = await apiClient.get<{ data: User }>("/users/profile");
     return response.data.data;
   },
 
   updateProfile: async (data: Partial<User>) => {
-    const response = await apiClient.put<{ data: User }>("/user/profile", data);
+    // Backend uses /users/profile, not /user/profile
+    const response = await apiClient.put<{ data: User }>("/users/profile", data);
     return response.data.data;
   },
 
   updatePassword: async (currentPassword: string, newPassword: string) => {
-    await apiClient.put("/user/password", { currentPassword, newPassword });
+    await apiClient.put("/users/password", { currentPassword, newPassword });
   },
 };
 
@@ -114,7 +116,8 @@ export const favoriteApi = {
   },
 
   add: async (propertyId: string) => {
-    const response = await apiClient.post<{ data: Favorite }>("/favorites", { propertyId });
+    // Backend expects POST /favorites/:propertyId, not body
+    const response = await apiClient.post<{ data: Favorite }>(`/favorites/${propertyId}`);
     return response.data.data;
   },
 
@@ -161,12 +164,14 @@ export const reviewApi = {
 
 export const preferenceApi = {
   get: async () => {
-    const response = await apiClient.get<{ data: UserPreference }>("/user/preferences");
+    // Backend uses /users/preferences, not /user/preferences
+    const response = await apiClient.get<{ data: UserPreference }>("/users/preferences");
     return response.data.data;
   },
 
   update: async (data: Partial<UserPreference>) => {
-    const response = await apiClient.put<{ data: UserPreference }>("/user/preferences", data);
+    // Backend uses /users/preferences, not /user/preferences
+    const response = await apiClient.put<{ data: UserPreference }>("/users/preferences", data);
     return response.data.data;
   },
 };
