@@ -16,10 +16,16 @@ export const generateRefreshToken = (userId: string): string => {
   );
 };
 
-export const verifyToken = (token: string): any => {
-  return jwt.verify(token, process.env.JWT_SECRET!);
+export const verifyToken = (token: string, isRefreshToken: boolean = false): any => {
+  try {
+    const secret = isRefreshToken ? process.env.JWT_REFRESH_SECRET! : process.env.JWT_SECRET!;
+    const decoded = jwt.verify(token, secret) as any;
+    return { userId: decoded.id, ...decoded };
+  } catch (error) {
+    return null;
+  }
 };
 
 export const verifyRefreshToken = (token: string): any => {
-  return jwt.verify(token, process.env.JWT_REFRESH_SECRET!);
+  return verifyToken(token, true);
 };
