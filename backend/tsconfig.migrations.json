@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "outDir": "./dist"
+  },
+  "include": [
+    "src/database/migrations/migrate.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}

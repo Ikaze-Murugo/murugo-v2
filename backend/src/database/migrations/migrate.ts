@@ -16,13 +16,16 @@ import { Review } from '../../models/Review.model';
 import { PropertyView } from '../../models/PropertyView.model';
 import { Notification } from '../../models/Notification.model';
 
-console.log('==========================================');
-console.log('Rwanda Real Estate - Database Migration');
-console.log('==========================================');
-console.log('Environment:', process.env.NODE_ENV);
-console.log('Database Host:', process.env.DB_HOST);
-console.log('Database Name:', process.env.DB_NAME);
-console.log('==========================================');
+// Only show banner if this file is executed directly
+if (require.main === module) {
+  console.log('==========================================');
+  console.log('Rwanda Real Estate - Database Migration');
+  console.log('==========================================');
+  console.log('Environment:', process.env.NODE_ENV);
+  console.log('Database Host:', process.env.DB_HOST);
+  console.log('Database Name:', process.env.DB_NAME);
+  console.log('==========================================');
+}
 
 const MigrationDataSource = new DataSource({
   name: 'migration',
@@ -78,5 +81,7 @@ async function runMigration(): Promise<void> {
   }
 }
 
-// Run migration
-runMigration();
+// Only run if this file is executed directly (not imported)
+if (require.main === module) {
+  runMigration();
+}
