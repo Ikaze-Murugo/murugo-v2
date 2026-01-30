@@ -85,7 +85,9 @@ export default function PropertyDetailPage() {
   }
 
   const images = property.media?.map((m) => m.url) || [];
-  const locationString = `${property.location.sector}, ${property.location.district}`;
+  const locationString = property.location
+    ? [property.location.sector, property.location.district].filter(Boolean).join(", ") || "Location TBD"
+    : "Location TBD";
 
   return (
     <div className="min-h-screen py-8 px-4">

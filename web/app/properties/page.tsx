@@ -20,7 +20,7 @@ export default function PropertiesPage() {
     queryFn: () => propertyApi.getAll(filters),
   });
 
-  const properties = data?.data || [];
+  const properties = data?.properties || [];
   const pagination = data?.pagination;
 
   const handleFiltersChange = (newFilters: Filters) => {

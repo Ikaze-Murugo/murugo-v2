@@ -61,7 +61,9 @@ export function PropertyCard({ property, onFavoriteChange }: PropertyCardProps) 
   };
 
   const primaryImage = property.media?.[0]?.url || "/placeholder-property.jpg";
-  const locationString = `${property.location.sector}, ${property.location.district}`;
+  const locationString = property.location
+    ? [property.location.sector, property.location.district].filter(Boolean).join(", ") || "Location TBD"
+    : "Location TBD";
 
   return (
     <Link href={`/properties/${property.id}`}>

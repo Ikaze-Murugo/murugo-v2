@@ -2,6 +2,8 @@
 
 Quick commands and checklist for VPS deployment with domain.
 
+**Monitoring:** [Monitoring Cheat Sheet](./MONITORING_CHEATSHEET.md) – status, logs, SSL, DB, restart/update.
+
 ---
 
 ## Quick Setup Checklist

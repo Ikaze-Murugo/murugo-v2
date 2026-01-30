@@ -15,6 +15,8 @@ Complete guide for deploying the Rwanda Real Estate Platform on a VPS with your 
 7. [Maintenance & Updates](#maintenance--updates)
 8. [Troubleshooting](#troubleshooting)
 
+**Quick reference:** [Monitoring Cheat Sheet](./MONITORING_CHEATSHEET.md) – service status, logs, SSL, DB, restart/update commands.
+
 ---
 
 ## Prerequisites
@@ -424,6 +426,8 @@ Login with credentials from `.env` (`TRAEFIK_DASHBOARD_AUTH`).
 ---
 
 ## Troubleshooting
+
+For a **log of past issues and fixes** (backend restart loop, TypeScript build errors, TypeORM "Object" type), see **[docs/issues](./issues/README.md)**.
 
 ### SSL Certificate Not Issued
 

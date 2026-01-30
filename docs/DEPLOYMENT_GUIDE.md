@@ -35,6 +35,7 @@ This guide provides step-by-step instructions for deploying the Rwanda Real Esta
 - Full control, Socket.io/Redis support, custom domain with SSL
 - One-time setup, predictable costs (~$6-12/month)
 - See [VPS deployment guide with domain setup](./VPS_DEPLOYMENT.md)
+- [Monitoring cheat sheet](./MONITORING_CHEATSHEET.md) – status, logs, SSL, DB, restart/update
 
 **Option 4: Vercel + Supabase**
 - Serverless API on Vercel; PostgreSQL on Supabase (free tiers)

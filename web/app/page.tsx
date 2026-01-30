@@ -20,8 +20,8 @@ export default function HomePage() {
     queryFn: () => propertyApi.getAll({ limit: 6, sortBy: "createdAt" }),
   });
 
-  const featuredProperties = featuredData?.data || [];
-  const latestProperties = latestData?.data || [];
+  const featuredProperties = featuredData?.properties || [];
+  const latestProperties = latestData?.properties || [];
 
   return (
     <div className="min-h-screen">

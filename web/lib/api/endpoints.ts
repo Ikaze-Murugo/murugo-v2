@@ -7,6 +7,7 @@ import type {
   Property,
   PropertyFilters,
   PaginatedResponse,
+  PaginationMeta,
   Favorite,
   Review,
   UserPreference,
@@ -37,7 +38,7 @@ export const authApi = {
   },
 
   refreshToken: async (refreshToken: string) => {
-    const response = await apiClient.post<{ data: { accessToken: string } }>("/auth/refresh", {
+    const response = await apiClient.post<{ data: { token: string } }>("/auth/refresh-token", {
       refreshToken,
     });
     return response.data.data;
@@ -50,8 +51,11 @@ export const authApi = {
 
 export const propertyApi = {
   getAll: async (filters?: PropertyFilters) => {
-    const response = await apiClient.get<{ data: PaginatedResponse<Property> }>("/properties", {
-      params: filters,
+    // Backend expects 'type' and 'search'; frontend uses propertyType
+    const { propertyType, ...rest } = filters || {};
+    const params = { ...rest, ...(propertyType != null && { type: propertyType }) };
+    const response = await apiClient.get<{ data: { properties: Property[]; pagination: PaginationMeta } }>("/properties", {
+      params,
     });
     return response.data.data;
   },
