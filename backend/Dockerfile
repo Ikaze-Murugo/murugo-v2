@@ -9,7 +9,7 @@ COPY package.json package-lock.json* ./
 RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
 # Copy source code and build
-COPY tsconfig.json ./
+COPY tsconfig.json tsconfig.migrations.json ./
 COPY src ./src
 RUN npm run build
 
