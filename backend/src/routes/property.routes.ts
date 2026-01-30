@@ -8,7 +8,7 @@ import {
   updatePropertySchema,
 } from '../validators/property.validator';
 import { AppDataSource } from '../database/connection';
-import { Property } from '../models/Property.model';
+import { Property, PropertyStatus } from '../models/Property.model';
 import { PropertyView } from '../models/PropertyView.model';
 import { successResponse, errorResponse } from '../utils/response.util';
 import type { AuthRequest } from '../middlewares/auth.middleware';
@@ -87,8 +87,10 @@ const getMyListings = async (req: AuthRequest, res: import('express').Response):
     }
     const propertyRepository = AppDataSource.getRepository(Property);
     const skip = (Number(page) - 1) * Number(limit);
-    const where: { listerId: string; status?: string } = { listerId: userId };
-    if (status && typeof status === 'string') where.status = status;
+    const where: { listerId: string; status?: PropertyStatus } = { listerId: userId };
+    if (status && typeof status === 'string' && Object.values(PropertyStatus).includes(status as PropertyStatus)) {
+      where.status = status as PropertyStatus;
+    }
     const [properties, total] = await propertyRepository.findAndCount({
       where,
       relations: ['media'],
