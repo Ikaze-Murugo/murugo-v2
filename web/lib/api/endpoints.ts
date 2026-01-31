@@ -67,8 +67,7 @@ export const propertyApi = {
 
   create: async (data: Partial<Property>) => {
     const response = await apiClient.post<{ data: { property: Property } }>("/properties", data);
-    const payload = response.data.data;
-    return (payload as { property?: Property }).property ?? (payload as Property);
+    return response.data.data.property;
   },
 
   update: async (id: string, data: Partial<Property>) => {
