@@ -1,10 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { PropertyGallery } from "@/components/property/property-gallery";
 import { ContactButton } from "@/components/property/contact-button";
 import { Button } from "@/components/ui/button";
-import { propertyApi } from "@/lib/api/endpoints";
-import { useQuery } from "@tanstack/react-query";
+import { propertyApi, reviewApi } from "@/lib/api/endpoints";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -16,19 +17,55 @@ import {
   Share2,
   ArrowLeft,
   Check,
+  Star,
+  MessageSquare,
 } from "lucide-react";
 import { toast } from "@/lib/hooks/use-toast";
 import { useAuth } from "@/lib/hooks/use-auth";
+import type { Review } from "@/lib/types";
 
 export default function PropertyDetailPage() {
   const params = useParams();
   const router = useRouter();
   const propertyId = params.id as string;
-  const { isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
 
+  const queryClient = useQueryClient();
   const { data: property, isLoading, error } = useQuery({
     queryKey: ["property", propertyId],
     queryFn: () => propertyApi.getById(propertyId),
+  });
+
+  const { data: reviews = [], isLoading: reviewsLoading } = useQuery({
+    queryKey: ["reviews", propertyId],
+    queryFn: () => reviewApi.getByProperty(propertyId),
+    enabled: !!propertyId,
+  });
+
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState("");
+
+  const createReviewMutation = useMutation({
+    mutationFn: (payload: { rating: number; comment: string }) =>
+      reviewApi.create({
+        propertyId,
+        revieweeId: property!.listerId ?? property!.lister?.id ?? "",
+        rating: payload.rating,
+        comment: payload.comment || undefined,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["reviews", propertyId] });
+      setReviewComment("");
+      setReviewRating(5);
+      toast({ title: "Review submitted", description: "Thanks for your feedback." });
+    },
+    onError: (err: Error) => {
+      toast({
+        title: "Error",
+        description: err.message || "Failed to submit review",
+        variant: "destructive",
+      });
+    },
   });
 
   const handleShare = async () => {
@@ -219,6 +256,87 @@ export default function PropertyDetailPage() {
                   </div>
                 )}
               </div>
+            </div>
+
+            {/* Reviews */}
+            <div>
+              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+                <MessageSquare className="h-6 w-6" />
+                Reviews {reviews.length > 0 && `(${reviews.length})`}
+              </h2>
+              {reviewsLoading ? (
+                <p className="text-muted-foreground">Loading reviews...</p>
+              ) : reviews.length === 0 ? (
+                <p className="text-muted-foreground">No reviews yet. Be the first to leave a review.</p>
+              ) : (
+                <ul className="space-y-4">
+                  {(reviews as Review[]).map((r) => {
+                    const reviewer = (r as Review & { reviewer?: { profile?: { name?: string }; email?: string } }).reviewer ?? r.user;
+                    const name = reviewer?.profile?.name ?? (reviewer as { email?: string })?.email ?? "Anonymous";
+                    return (
+                      <li key={r.id} className="p-4 border rounded-lg bg-muted/30">
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <span className="font-medium">{name}</span>
+                          <div className="flex items-center gap-1">
+                            {[1, 2, 3, 4, 5].map((i) => (
+                              <Star
+                                key={i}
+                                className={`h-4 w-4 ${i <= r.rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground"}`}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        {r.comment && <p className="text-sm text-muted-foreground">{r.comment}</p>}
+                        <p className="text-xs text-muted-foreground mt-2">
+                          {r.createdAt ? new Date(r.createdAt).toLocaleDateString() : ""}
+                        </p>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+
+              {isAuthenticated && user?.id !== property.listerId && property.listerId && (
+                <div className="mt-6 p-4 border rounded-lg bg-background">
+                  <h3 className="font-semibold mb-3">Leave a review</h3>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Rating</label>
+                      <div className="flex gap-1">
+                        {[1, 2, 3, 4, 5].map((i) => (
+                          <button
+                            key={i}
+                            type="button"
+                            onClick={() => setReviewRating(i)}
+                            className="p-1 rounded hover:bg-muted"
+                          >
+                            <Star
+                              className={`h-8 w-8 ${i <= reviewRating ? "fill-amber-400 text-amber-400" : "text-muted-foreground"}`}
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Comment (optional)</label>
+                      <textarea
+                        className="w-full px-3 py-2 border rounded-md min-h-[80px]"
+                        placeholder="Share your experience..."
+                        value={reviewComment}
+                        onChange={(e) => setReviewComment(e.target.value)}
+                      />
+                    </div>
+                    <Button
+                      disabled={createReviewMutation.isPending}
+                      onClick={() =>
+                        createReviewMutation.mutate({ rating: reviewRating, comment: reviewComment })
+                      }
+                    >
+                      {createReviewMutation.isPending ? "Submitting..." : "Submit review"}
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

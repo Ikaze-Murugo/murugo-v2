@@ -352,6 +352,75 @@ To serve the site at **murugohomes.com** or **www.murugohomes.com**:
 
 ---
 
+## Integrating into production
+
+Use this flow whenever you want to ship the latest code (e.g. after fixes or new features) to your live setup: **Web on Vercel** + **Backend on VPS (Docker)**.
+
+### 1. Commit and push
+
+```bash
+# From repo root
+git add .
+git status   # sanity check
+git commit -m "Your message (e.g. Create property fix, admin stats, reviews)"
+git push origin main
+```
+
+### 2. Web (Vercel)
+
+- If Vercel is connected to your Git repo, **pushing to `main` triggers a new deploy**.
+- In Vercel: **Project** → **Deployments** to confirm the latest build succeeded.
+- Ensure **Environment Variables** include:
+  - **`NEXT_PUBLIC_API_URL`** = your backend base URL (e.g. `https://api.murugohomes.com`) — **no trailing slash**.
+- After deploy, test: login, listings, property detail, reviews, admin dashboard.
+
+### 3. Backend (VPS with Docker)
+
+SSH into the VPS, pull, rebuild the backend image, and restart:
+
+```bash
+ssh root@YOUR_VPS_IP   # or your deploy user
+
+cd /path/to/rwanda-real-estate-app   # where you cloned the repo
+
+git pull origin main
+
+# Rebuild and restart only the backend (no DB changes needed for code-only updates)
+sudo docker compose build backend --no-cache
+sudo docker compose up -d backend
+
+# Optional: run migrations only if you added new ones
+# sudo docker compose run --rm backend npm run migrate
+```
+
+- **No new migrations** are required for recent changes (create-property alignment, admin stats, reviews); only run `npm run migrate` if you added new migration files.
+- Check health: `curl https://api.YOUR_DOMAIN/health` (or your API health path).
+- Check logs: `sudo docker compose logs -f backend`.
+
+### 4. CORS
+
+Ensure the backend allows your production frontend origin(s):
+
+- Vercel URL: `https://your-project.vercel.app`
+- Custom domain(s): e.g. `https://www.murugohomes.com`, `https://murugohomes.com`
+
+If you add a new domain in Vercel, update CORS on the backend and restart the backend container.
+
+### 5. Quick verification
+
+| Check | Where |
+|-------|--------|
+| Web build | Vercel → Deployments |
+| API health | `curl https://api.YOUR_DOMAIN/health` |
+| Login / register | Web app → Login / Register |
+| Listings & create property | Web app → Dashboard → Add Property |
+| Property detail & reviews | Web app → Property page → Reviews |
+| Admin stats | Web app → Admin (admin user) |
+
+For more VPS commands (restart, logs, SSL), see [VPS Quick Reference](./VPS_QUICK_REFERENCE.md) and [Monitoring Cheat Sheet](./MONITORING_CHEATSHEET.md).
+
+---
+
 ## Mobile App Deployment
 
 ### Step 1: Configure Environment

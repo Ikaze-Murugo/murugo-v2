@@ -80,10 +80,10 @@ export const propertyApi = {
   },
 
   getMyProperties: async (filters?: PropertyFilters) => {
-    // Backend returns { properties, pagination } (same shape as getAll)
+    // Backend route is GET /properties/my/listings
     const response = await apiClient.get<{
       data: { properties: Property[]; pagination: PaginationMeta };
-    }>("/properties/my", { params: filters });
+    }>("/properties/my/listings", { params: filters });
     return response.data.data;
   },
 };
@@ -146,11 +146,19 @@ export const favoriteApi = {
 
 export const reviewApi = {
   getByProperty: async (propertyId: string) => {
-    const response = await apiClient.get<{ data: Review[] }>(`/reviews/property/${propertyId}`);
-    return response.data.data;
+    const response = await apiClient.get<{
+      data: { reviews?: Review[]; pagination?: { total: number } };
+    }>(`/reviews/property/${propertyId}`);
+    const data = response.data?.data;
+    return Array.isArray(data) ? data : (data?.reviews ?? []);
   },
 
-  create: async (data: { propertyId: string; rating: number; comment?: string }) => {
+  create: async (data: {
+    propertyId: string;
+    revieweeId: string;
+    rating: number;
+    comment?: string;
+  }) => {
     const response = await apiClient.post<{ data: Review }>("/reviews", data);
     return response.data.data;
   },

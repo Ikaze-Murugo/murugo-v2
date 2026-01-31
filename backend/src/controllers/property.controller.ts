@@ -12,17 +12,17 @@ export const createProperty = async (req: AuthRequest, res: Response): Promise<v
   try {
     const userId = req.user?.id;
     const {
-      name,
-      type,
+      title,
+      propertyType,
+      transactionType,
       location,
       price,
+      currency,
       description,
       amenities,
       bedrooms,
       bathrooms,
-      area,
-      latitude,
-      longitude,
+      sizeSqm,
     } = req.body;
 
     if (!userId) {
@@ -30,25 +30,25 @@ export const createProperty = async (req: AuthRequest, res: Response): Promise<v
       return;
     }
 
-    // Validate required fields
-    if (!name || !type || !location || !price) {
-      errorResponse(res, 'Name, type, location, and price are required', 400);
+    if (!title || !propertyType || !location || !price) {
+      errorResponse(res, 'Title, propertyType, location, and price are required', 400);
       return;
     }
 
     const propertyRepository = AppDataSource.getRepository(Property);
     const property = propertyRepository.create({
       listerId: userId,
-      title: name,
-      propertyType: type,
-      transactionType: TransactionType.RENT, // Default, should come from request
+      title,
+      propertyType,
+      transactionType: transactionType ?? TransactionType.RENT,
       location,
       price,
-      description,
-      amenities,
+      currency: currency ?? 'RWF',
+      description: description ?? '',
+      amenities: Array.isArray(amenities) ? amenities : [],
       bedrooms,
       bathrooms,
-      sizeSqm: area,
+      sizeSqm,
       status: PropertyStatus.AVAILABLE,
     });
 
