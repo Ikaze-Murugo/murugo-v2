@@ -20,7 +20,7 @@ const propertySchema = z.object({
   propertyType: z.nativeEnum(PropertyType),
   transactionType: z.nativeEnum(TransactionType),
   price: z.number().min(1, "Price must be greater than 0"),
-  currency: z.string().default("RWF"),
+  currency: z.string().min(1, "Currency is required"),
   district: z.string().min(2, "District is required"),
   sector: z.string().min(2, "Sector is required"),
   cell: z.string().optional(),
@@ -59,6 +59,7 @@ export default function EditPropertyPage() {
     reset,
   } = useForm<PropertyFormData>({
     resolver: zodResolver(propertySchema),
+    defaultValues: { currency: "RWF" },
   });
 
   // Populate form when property data loads
@@ -71,7 +72,7 @@ export default function EditPropertyPage() {
         propertyType: property.propertyType,
         transactionType: property.transactionType,
         price: property.price,
-        currency: property.currency,
+        currency: property.currency ?? "RWF",
         district: loc?.district ?? "",
         sector: loc?.sector ?? "",
         cell: loc?.cell ?? "",
