@@ -4,7 +4,7 @@ import { AppDataSource } from '../database/connection';
 import { User } from '../models/User.model';
 import { Profile } from '../models/Profile.model';
 import { UserPreference } from '../models/UserPreference.model';
-import { Property } from '../models/Property.model';
+import { Property, PropertyStatus } from '../models/Property.model';
 import { successResponse, errorResponse } from '../utils/response.util';
 
 export const getProfile = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -111,24 +111,24 @@ export const updatePreferences = async (req: AuthRequest, res: Response): Promis
     });
 
     if (!preferences) {
-      // Create preferences if they don't exist
+      // Create preferences if they don't exist (model: budgetMin, budgetMax, preferredLocations, requiredAmenities)
       preferences = preferencesRepository.create({
         userId,
-        propertyTypes,
-        minPrice,
-        maxPrice,
-        locations,
-        amenities,
-        notificationSettings,
+        propertyTypes: propertyTypes ?? [],
+        budgetMin: minPrice ?? null,
+        budgetMax: maxPrice ?? null,
+        preferredLocations: locations ?? [],
+        requiredAmenities: amenities ?? [],
+        surveyResponses: notificationSettings ? { notificationSettings } : null,
       });
     } else {
       // Update existing preferences
       if (propertyTypes !== undefined) preferences.propertyTypes = propertyTypes;
-      if (minPrice !== undefined) preferences.minPrice = minPrice;
-      if (maxPrice !== undefined) preferences.maxPrice = maxPrice;
-      if (locations !== undefined) preferences.locations = locations;
-      if (amenities !== undefined) preferences.amenities = amenities;
-      if (notificationSettings !== undefined) preferences.notificationSettings = notificationSettings;
+      if (minPrice !== undefined) preferences.budgetMin = minPrice;
+      if (maxPrice !== undefined) preferences.budgetMax = maxPrice;
+      if (locations !== undefined) preferences.preferredLocations = locations;
+      if (amenities !== undefined) preferences.requiredAmenities = amenities;
+      if (notificationSettings !== undefined) preferences.surveyResponses = { ...(preferences.surveyResponses || {}), notificationSettings };
     }
 
     await preferencesRepository.save(preferences);
@@ -154,7 +154,7 @@ export const getPreferences = async (req: AuthRequest, res: Response): Promise<v
     });
 
     if (!preferences) {
-      // Return default preferences if none exist
+      // Return default preferences if none exist (API-friendly names)
       successResponse(res, {
         preferences: {
           propertyTypes: [],
@@ -168,7 +168,18 @@ export const getPreferences = async (req: AuthRequest, res: Response): Promise<v
       return;
     }
 
-    successResponse(res, { preferences }, 'Preferences fetched successfully');
+    // Map model fields to API-friendly names for frontend
+
+    successResponse(res, {
+      preferences: {
+        ...preferences,
+        minPrice: preferences.budgetMin,
+        maxPrice: preferences.budgetMax,
+        locations: preferences.preferredLocations,
+        amenities: preferences.requiredAmenities,
+        notificationSettings: (preferences.surveyResponses as Record<string, unknown>)?.notificationSettings ?? {},
+      },
+    }, 'Preferences fetched successfully');
   } catch (error: any) {
     errorResponse(res, error.message, 500);
   }
@@ -202,19 +213,21 @@ export const submitSurvey = async (req: AuthRequest, res: Response): Promise<voi
       preferences = preferencesRepository.create({
         userId,
         propertyTypes: propertyTypes || [],
-        minPrice: priceRange?.min || null,
-        maxPrice: priceRange?.max || null,
-        locations: preferredLocations || [],
-        amenities: mustHaveAmenities || [],
-        notificationSettings: notificationPreferences || {},
+        budgetMin: priceRange?.min ?? null,
+        budgetMax: priceRange?.max ?? null,
+        preferredLocations: preferredLocations || [],
+        requiredAmenities: mustHaveAmenities || [],
+        surveyResponses: notificationPreferences ? { notificationSettings: notificationPreferences } : null,
       });
     } else {
       preferences.propertyTypes = propertyTypes || preferences.propertyTypes;
-      preferences.minPrice = priceRange?.min || preferences.minPrice;
-      preferences.maxPrice = priceRange?.max || preferences.maxPrice;
-      preferences.locations = preferredLocations || preferences.locations;
-      preferences.amenities = mustHaveAmenities || preferences.amenities;
-      preferences.notificationSettings = notificationPreferences || preferences.notificationSettings;
+      preferences.budgetMin = priceRange?.min ?? preferences.budgetMin;
+      preferences.budgetMax = priceRange?.max ?? preferences.budgetMax;
+      preferences.preferredLocations = preferredLocations || preferences.preferredLocations;
+      preferences.requiredAmenities = mustHaveAmenities || preferences.requiredAmenities;
+      if (notificationPreferences !== undefined) {
+        preferences.surveyResponses = { ...(preferences.surveyResponses || {}), notificationSettings: notificationPreferences };
+      }
     }
 
     await preferencesRepository.save(preferences);
@@ -241,9 +254,9 @@ export const getUserStatistics = async (req: AuthRequest, res: Response): Promis
       where: { listerId: userId },
     });
 
-    // Get active properties count
+    // Get active (available) properties count
     const activePropertiesCount = await propertyRepository.count({
-      where: { listerId: userId, status: 'active' },
+      where: { listerId: userId, status: PropertyStatus.AVAILABLE },
     });
 
     // TODO: Add more statistics (views, favorites, messages, etc.)
