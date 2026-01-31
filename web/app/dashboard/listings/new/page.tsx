@@ -172,6 +172,38 @@ export default function AddPropertyPage() {
     setCurrentStep(currentStep - 1);
   };
 
+  // Map form fields to the step that contains them (so we can jump to first error)
+  const fieldToStep: Record<string, number> = {
+    title: 1,
+    description: 1,
+    propertyType: 1,
+    transactionType: 1,
+    price: 1,
+    currency: 1,
+    district: 2,
+    sector: 2,
+    cell: 2,
+    address: 2,
+    latitude: 2,
+    longitude: 2,
+    bedrooms: 3,
+    bathrooms: 3,
+    sizeSqm: 3,
+    amenities: 3,
+    status: 3,
+  };
+
+  const onInvalid = (errors: Record<string, { message?: string }>) => {
+    const firstErrorField = Object.keys(errors)[0];
+    const step = firstErrorField ? fieldToStep[firstErrorField] ?? 1 : 1;
+    setCurrentStep(step);
+    toast({
+      title: "Complete required fields",
+      description: "Please fix the highlighted fields and try again.",
+      variant: "destructive",
+    });
+  };
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length + images.length > 10) {
@@ -257,7 +289,7 @@ export default function AddPropertyPage() {
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={handleSubmit(onSubmit, onInvalid)}>
         <Card>
           <CardHeader>
             <CardTitle>{STEPS[currentStep - 1].title}</CardTitle>
