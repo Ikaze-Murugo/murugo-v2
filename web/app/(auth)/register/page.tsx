@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -71,7 +72,7 @@ const PROFILE_TYPE_OPTIONS = [
   { value: ProfileType.COMPANY, label: "Real Estate Company" },
 ] as const;
 
-export default function RegisterPage() {
+function RegisterForm() {
   const searchParams = useSearchParams();
   const roleFromUrl = searchParams.get("role");
   const defaultRole =
@@ -243,5 +244,21 @@ export default function RegisterPage() {
         </CardFooter>
       </form>
     </Card>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense
+      fallback={
+        <Card>
+          <CardContent className="flex items-center justify-center min-h-[400px]">
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent" />
+          </CardContent>
+        </Card>
+      }
+    >
+      <RegisterForm />
+    </Suspense>
   );
 }
