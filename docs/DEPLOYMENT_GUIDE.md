@@ -5,10 +5,11 @@
 1. [Overview](#overview)
 2. [Free Hosting Options](#free-hosting-options)
 3. [Backend Deployment](#backend-deployment)
-4. [Mobile App Deployment](#mobile-app-deployment)
-5. [Database Setup](#database-setup)
-6. [Environment Configuration](#environment-configuration)
-7. [Post-Deployment Checks](#post-deployment-checks)
+4. [Web Frontend Deployment (Vercel)](#web-frontend-deployment-vercel)
+5. [Mobile App Deployment](#mobile-app-deployment)
+6. [Database Setup](#database-setup)
+7. [Environment Configuration](#environment-configuration)
+8. [Post-Deployment Checks](#post-deployment-checks)
 
 ## Overview
 
@@ -72,6 +73,10 @@ This guide provides step-by-step instructions for deploying the Rwanda Real Esta
 - **Cloudinary** - Free tier with 25 GB storage and 25 GB bandwidth
 - **ImageKit** - Free tier with 20 GB storage and 20 GB bandwidth
 - **Supabase Storage** - Free tier with 1 GB storage
+
+### Web Frontend (Next.js)
+
+- **Vercel** – Recommended for the Next.js app in `web/`. Free tier, automatic HTTPS, Git-based deploys. Set **Root Directory** to **`web`** and connect to your backend via `NEXT_PUBLIC_API_URL`. See [Web Frontend Deployment (Vercel)](#web-frontend-deployment-vercel).
 
 ### Mobile App Distribution
 
@@ -220,6 +225,132 @@ MAX_FILES_PER_PROPERTY=20
 **3.6. Deploy**
 - Railway automatically deploys on every Git push
 - Get your public URL from the service dashboard
+
+## Web Frontend Deployment (Vercel)
+
+This section covers deploying the **Next.js web app** (`web/`) to Vercel and connecting it to your **backend API on a VPS** (e.g. `https://api.murugohomes.com`).
+
+### Why set the root directory to `web`?
+
+The repo has multiple apps:
+
+| Directory | Purpose | Deploy to |
+|-----------|---------|-----------|
+| **Root** | Monorepo (backend, web, mobile) | Not used as Vercel root |
+| **`backend`** | Node/Express API | VPS, Render, or (with Supabase) Vercel — see [Vercel + Supabase](./VERCEL_SUPABASE_DEPLOYMENT.md) |
+| **`web`** | Next.js frontend | **Vercel** (this section) |
+| **`mobile`** | React Native/Expo | EAS / app stores |
+
+For the **website** (murugohomes.com), you deploy the **`web`** directory. Setting **Root Directory** to `web` in Vercel ensures Vercel builds and serves the Next.js app, not the backend or the repo root.
+
+### Step 1: Push your code
+
+Ensure your latest code is pushed to GitHub (or GitLab/Bitbucket):
+
+```bash
+git add .
+git commit -m "Ready for Vercel deploy"
+git push origin main
+```
+
+### Step 2: Create a Vercel project
+
+1. Go to [vercel.com](https://vercel.com) and sign in (e.g. with GitHub).
+2. Click **Add New** → **Project**.
+3. Import your **rwanda-real-estate-app** repository (or connect the repo if first time).
+4. **Do not** leave the root as the project root. Set the following.
+
+### Step 3: Set the root directory to `web`
+
+1. In the import screen, find **Root Directory**.
+2. Click **Edit** next to it.
+3. Enter: **`web`** (only the folder name, no leading slash).
+4. Confirm. Vercel will now use `web` as the project root and should auto-detect **Next.js** as the framework.
+
+### Step 4: Build and output settings
+
+With root = `web`, Vercel usually detects everything. Verify:
+
+| Setting | Value |
+|---------|--------|
+| **Framework Preset** | Next.js |
+| **Build Command** | `pnpm build` or `npm run build` (match what you use locally; `web` uses pnpm) |
+| **Output Directory** | Leave default (Next.js handles this) |
+| **Install Command** | `pnpm install` or `npm install` |
+
+If **Install Command** is empty, set it to `pnpm install` when using pnpm so dependencies install correctly.
+
+### Step 5: Environment variables (connect to your VPS backend)
+
+Add variables in **Settings** → **Environment Variables** for the Vercel project. These are used at **build time** and **runtime** for the Next.js app.
+
+| Variable | Value | Required |
+|----------|--------|----------|
+| **`NEXT_PUBLIC_API_URL`** | Your backend API base URL, e.g. `https://api.murugohomes.com` | Yes |
+| **`NEXT_PUBLIC_API_TIMEOUT`** | Optional; e.g. `30000` (milliseconds) | No |
+
+- **No trailing slash** on `NEXT_PUBLIC_API_URL` (e.g. `https://api.murugohomes.com`).
+- The web app sends requests to `NEXT_PUBLIC_API_URL + '/api/v1/...'`.
+
+Add these for **Production** (and optionally Preview/Development if you use different API URLs).
+
+### Step 6: Deploy
+
+1. Click **Deploy**.
+2. Wait for the build. The first deploy may take a few minutes (fonts, Next.js compile).
+3. When done, Vercel gives you a URL like `https://your-project.vercel.app`.
+
+### Step 7: Backend (VPS) CORS
+
+Your backend on the VPS must allow requests from the Vercel frontend origin. Otherwise the browser will block API calls.
+
+1. On the VPS, open your backend CORS config (e.g. in Express `cors()` or `app.ts`).
+2. Allow the Vercel domain and (if you use it) your custom domain, for example:
+   - `https://your-project.vercel.app`
+   - `https://www.murugohomes.com`
+   - `https://murugohomes.com`
+3. Restart the backend after changing CORS.
+
+Example (Express):
+
+```javascript
+origin: [
+  'https://your-project.vercel.app',
+  'https://www.murugohomes.com',
+  'https://murugohomes.com',
+  /\.vercel\.app$/  // all Vercel preview URLs
+]
+```
+
+### Step 8: Custom domain (optional)
+
+To serve the site at **murugohomes.com** or **www.murugohomes.com**:
+
+1. In Vercel: **Project** → **Settings** → **Domains**.
+2. Add `murugohomes.com` and `www.murugohomes.com`.
+3. Follow Vercel’s instructions to add the DNS records (A/CNAME) at your domain registrar.
+4. After DNS propagates, Vercel will provision SSL automatically.
+
+### Quick checklist
+
+- [ ] Repo pushed to GitHub (or connected provider).
+- [ ] Vercel project created from that repo.
+- [ ] **Root Directory** set to **`web`** (not root, not `backend`).
+- [ ] **Install Command**: `pnpm install` (or `npm install`).
+- [ ] **Build Command**: `pnpm build` (or `npm run build`).
+- [ ] **`NEXT_PUBLIC_API_URL`** set to your VPS API URL (e.g. `https://api.murugohomes.com`).
+- [ ] Backend on VPS allows CORS for the Vercel (and custom) domain(s).
+- [ ] Deploy succeeds; open the Vercel URL and test login, listings, and API calls.
+
+### Troubleshooting
+
+| Issue | What to check |
+|-------|----------------|
+| Build fails | Confirm root is `web`; run `pnpm build` locally in `web/`. |
+| “API request failed” in browser | `NEXT_PUBLIC_API_URL` correct; backend is up; CORS allows your Vercel/frontend origin. |
+| 404 on routes | Next.js app is deployed (root = `web`), not the backend. |
+
+---
 
 ## Mobile App Deployment
 
