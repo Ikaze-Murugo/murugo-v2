@@ -66,8 +66,9 @@ export const propertyApi = {
   },
 
   create: async (data: Partial<Property>) => {
-    const response = await apiClient.post<{ data: Property }>("/properties", data);
-    return response.data.data;
+    const response = await apiClient.post<{ data: { property: Property } }>("/properties", data);
+    const payload = response.data.data;
+    return (payload as { property?: Property }).property ?? (payload as Property);
   },
 
   update: async (id: string, data: Partial<Property>) => {
@@ -84,6 +85,14 @@ export const propertyApi = {
     const response = await apiClient.get<{
       data: { properties: Property[]; pagination: PaginationMeta };
     }>("/properties/my/listings", { params: filters });
+    return response.data.data;
+  },
+
+  addMedia: async (propertyId: string, urls: string[]) => {
+    const response = await apiClient.post<{ data: { media: unknown[] } }>(
+      `/properties/${propertyId}/media`,
+      { urls }
+    );
     return response.data.data;
   },
 };

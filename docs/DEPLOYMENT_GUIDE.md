@@ -414,10 +414,40 @@ If you add a new domain in Vercel, update CORS on the backend and restart the ba
 | API health | `curl https://api.YOUR_DOMAIN/health` |
 | Login / register | Web app → Login / Register |
 | Listings & create property | Web app → Dashboard → Add Property |
+| Create property **with images** | Add Property → fill steps 1–3 → Step 4 add images → Create → listing shows photos |
 | Property detail & reviews | Web app → Property page → Reviews |
 | Admin stats | Web app → Admin (admin user) |
 
 For more VPS commands (restart, logs, SSL), see [VPS Quick Reference](./VPS_QUICK_REFERENCE.md) and [Monitoring Cheat Sheet](./MONITORING_CHEATSHEET.md).
+
+### 6. Deploying the “property images” feature (and similar updates)
+
+When you add features like **saving uploaded image URLs to the property** (create → upload images → create property → attach media), use the same flow as above:
+
+1. **Commit and push** (from repo root):
+   ```bash
+   git add .
+   git status
+   git commit -m "Add property media: save uploaded image URLs to listing after create"
+   git push origin main
+   ```
+
+2. **Vercel** deploys the web app automatically (if connected to Git). No extra env vars needed for this feature.
+
+3. **VPS backend** – pull, rebuild, restart:
+   ```bash
+   ssh root@YOUR_VPS_IP
+   cd /path/to/rwanda-real-estate-app
+   git pull origin main
+   sudo docker compose build backend --no-cache
+   sudo docker compose up -d backend
+   ```
+   No new migrations for the add-media endpoint; only new code.
+
+4. **Verify**:
+   - Create a new property, add 1–2 images on Step 4, click Create Property.
+   - Open the new listing (My Listings or property detail); images should appear.
+   - If upload fails, check backend logs: `sudo docker compose logs -f backend`, and ensure Cloudinary env vars (`CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`) are set in `backend/.env.production` on the VPS.
 
 ---
 

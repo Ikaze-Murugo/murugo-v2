@@ -133,6 +133,7 @@ router.put(
 );
 
 router.delete('/:id', authenticate, propertyController.deleteProperty);
+router.post('/:id/media', authenticate, propertyController.addPropertyMediaByUrls);
 router.get('/my/listings', authenticate, getMyListings);
 router.patch('/:id/status', authenticate, propertyController.updatePropertyStatus);
 router.get('/:id/analytics', authenticate, propertyController.getPropertyAnalytics);

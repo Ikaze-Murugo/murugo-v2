@@ -44,6 +44,45 @@ const uploadBufferToCloudinary = (buffer: Buffer, folder: string): Promise<any> 
 };
 
 /**
+ * Generic single file upload (returns URL).
+ */
+export const uploadSingleGeneric = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const file = req.file;
+    if (!file) {
+      errorResponse(res, 'No file uploaded', 400);
+      return;
+    }
+    const folder = 'rwanda-real-estate/uploads';
+    const result = await uploadBufferToCloudinary(file.buffer, folder);
+    successResponse(res, { url: result.secure_url }, 'File uploaded successfully', 201);
+  } catch (error: any) {
+    errorResponse(res, error.message || 'Upload failed', 500);
+  }
+};
+
+/**
+ * Generic multiple file upload (returns URLs only; no property link).
+ * Used by frontend before creating a property so images can be uploaded first.
+ */
+export const uploadMultipleGeneric = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const files = req.files as Express.Multer.File[] | undefined;
+    if (!files || files.length === 0) {
+      errorResponse(res, 'No files uploaded', 400);
+      return;
+    }
+    const folder = 'rwanda-real-estate/uploads';
+    const uploadPromises = files.map((file) => uploadBufferToCloudinary(file.buffer, folder));
+    const results = await Promise.all(uploadPromises);
+    const urls = results.map((r) => r.secure_url).filter(Boolean);
+    successResponse(res, { urls }, 'Files uploaded successfully', 201);
+  } catch (error: any) {
+    errorResponse(res, error.message || 'Upload failed', 500);
+  }
+};
+
+/**
  * Upload property images
  */
 export const uploadPropertyImages = async (req: AuthRequest, res: Response): Promise<void> => {

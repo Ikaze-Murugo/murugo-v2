@@ -92,7 +92,7 @@ export default function AddPropertyPage() {
 
   const createMutation = useMutation({
     mutationFn: async (data: PropertyFormData) => {
-      // Upload images first
+      // 1. Upload images first (to Cloudinary)
       let imageUrls: string[] = [];
       if (images.length > 0) {
         setIsUploading(true);
@@ -105,10 +105,13 @@ export default function AddPropertyPage() {
         }
       }
 
-      // Create property
+      // 2. Create property
       const amenitiesList = data.amenities
         ? data.amenities.split(",").map((a) => a.trim()).filter(Boolean)
         : [];
+
+      const lat = typeof data.latitude === "number" && !Number.isNaN(data.latitude) ? data.latitude : 0;
+      const lng = typeof data.longitude === "number" && !Number.isNaN(data.longitude) ? data.longitude : 0;
 
       const propertyData = {
         title: data.title,
@@ -120,22 +123,26 @@ export default function AddPropertyPage() {
         location: {
           district: data.district,
           sector: data.sector,
-          cell: data.cell || "",
+          cell: data.cell ?? "",
           address: data.address,
-          latitude: data.latitude || 0,
-          longitude: data.longitude || 0,
+          latitude: lat,
+          longitude: lng,
         },
         bedrooms: data.bedrooms,
         bathrooms: data.bathrooms,
         sizeSqm: data.sizeSqm,
         amenities: amenitiesList,
         status: data.status,
-        // Note: media is handled separately via image upload endpoints
-        // The backend expects full PropertyMedia objects with id, propertyId, order, createdAt
-        // which we don't have when creating. Images are managed through separate upload endpoints.
       };
 
-      return propertyApi.create(propertyData);
+      const property = await propertyApi.create(propertyData);
+
+      // 3. Attach uploaded image URLs to the new property
+      if (imageUrls.length > 0 && property?.id) {
+        await propertyApi.addMedia(property.id, imageUrls);
+      }
+
+      return property;
     },
     onSuccess: () => {
       toast({

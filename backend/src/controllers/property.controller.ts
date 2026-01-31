@@ -2,7 +2,7 @@ import { Response } from 'express';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { AppDataSource } from '../database/connection';
 import { Property, PropertyStatus, TransactionType } from '../models/Property.model';
-import { PropertyMedia } from '../models/PropertyMedia.model';
+import { PropertyMedia, MediaType } from '../models/PropertyMedia.model';
 import { PropertyView } from '../models/PropertyView.model';
 import { User } from '../models/User.model';
 import { successResponse, errorResponse } from '../utils/response.util';
@@ -35,13 +35,22 @@ export const createProperty = async (req: AuthRequest, res: Response): Promise<v
       return;
     }
 
+    const normalizedLocation = {
+      district: location.district,
+      sector: location.sector,
+      cell: location.cell ?? '',
+      address: location.address,
+      latitude: location.latitude != null && !Number.isNaN(Number(location.latitude)) ? Number(location.latitude) : 0,
+      longitude: location.longitude != null && !Number.isNaN(Number(location.longitude)) ? Number(location.longitude) : 0,
+    };
+
     const propertyRepository = AppDataSource.getRepository(Property);
     const property = propertyRepository.create({
       listerId: userId,
       title,
       propertyType,
       transactionType: transactionType ?? TransactionType.RENT,
-      location,
+      location: normalizedLocation,
       price,
       currency: currency ?? 'RWF',
       description: description ?? '',
@@ -302,6 +311,67 @@ export const deleteProperty = async (req: AuthRequest, res: Response): Promise<v
     successResponse(res, {}, 'Property deleted successfully');
   } catch (error: any) {
     errorResponse(res, error.message, 500);
+  }
+};
+
+/**
+ * Add media (images) to a property by URLs.
+ * Used after create when images were uploaded via /upload/multiple.
+ */
+export const addPropertyMediaByUrls = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { id: propertyId } = req.params;
+    const { urls } = req.body as { urls?: string[] };
+    const userId = req.user?.id;
+
+    if (!userId) {
+      errorResponse(res, 'User not authenticated', 401);
+      return;
+    }
+
+    if (!urls || !Array.isArray(urls) || urls.length === 0) {
+      errorResponse(res, 'urls array is required and must not be empty', 400);
+      return;
+    }
+
+    const propertyRepository = AppDataSource.getRepository(Property);
+    const property = await propertyRepository.findOne({
+      where: { id: propertyId },
+    });
+
+    if (!property) {
+      errorResponse(res, 'Property not found', 404);
+      return;
+    }
+
+    if (property.listerId !== userId && req.user?.role !== 'admin') {
+      errorResponse(res, 'You are not authorized to add media to this property', 403);
+      return;
+    }
+
+    const mediaRepository = AppDataSource.getRepository(PropertyMedia);
+    const existingCount = await mediaRepository.count({ where: { propertyId } });
+    const mediaRecords = urls
+      .filter((url): url is string => typeof url === 'string' && url.length > 0)
+      .map((url, index) =>
+        mediaRepository.create({
+          propertyId,
+          url,
+          mediaType: MediaType.IMAGE,
+          order: existingCount + index,
+        })
+      );
+
+    if (mediaRecords.length === 0) {
+      errorResponse(res, 'No valid URLs provided', 400);
+      return;
+    }
+
+    await mediaRepository.save(mediaRecords);
+
+    successResponse(res, { media: mediaRecords }, 'Media added successfully', 201);
+  } catch (error: any) {
+    errorResponse(res, error.message || 'Failed to add media', 500);
   }
 };
 
