@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { AppDataSource } from '../database/connection';
-import { Property } from '../models/Property.model';
+import { Property, PropertyStatus, TransactionType } from '../models/Property.model';
 import { PropertyMedia } from '../models/PropertyMedia.model';
 import { PropertyView } from '../models/PropertyView.model';
 import { User } from '../models/User.model';
@@ -39,18 +39,17 @@ export const createProperty = async (req: AuthRequest, res: Response): Promise<v
     const propertyRepository = AppDataSource.getRepository(Property);
     const property = propertyRepository.create({
       listerId: userId,
-      name,
-      type,
+      title: name,
+      propertyType: type,
+      transactionType: TransactionType.RENT, // Default, should come from request
       location,
       price,
       description,
       amenities,
       bedrooms,
       bathrooms,
-      area,
-      latitude,
-      longitude,
-      status: 'active',
+      sizeSqm: area,
+      status: PropertyStatus.AVAILABLE,
     });
 
     await propertyRepository.save(property);
@@ -158,7 +157,7 @@ export const getFeaturedProperties = async (req: AuthRequest, res: Response): Pr
 
     // Get properties with most views (featured)
     const [properties, total] = await propertyRepository.findAndCount({
-      where: { status: 'active' },
+      where: { status: PropertyStatus.AVAILABLE },
       relations: ['lister', 'lister.profile', 'media'],
       order: { views: 'DESC', createdAt: 'DESC' },
       skip,
@@ -210,7 +209,7 @@ export const getPropertyById = async (req: AuthRequest, res: Response): Promise<
         await viewRepository.save(view);
 
         // Increment views count
-        property.views = (property.views || 0) + 1;
+        property.viewsCount = (property.viewsCount || 0) + 1;
         await propertyRepository.save(property);
       }
     }
@@ -297,8 +296,8 @@ export const deleteProperty = async (req: AuthRequest, res: Response): Promise<v
       return;
     }
 
-    // Soft delete: set status to inactive
-    property.status = 'inactive';
+    // Soft delete: set status to pending (or you could add INACTIVE to enum)
+    property.status = PropertyStatus.PENDING;
     await propertyRepository.save(property);
 
     successResponse(res, {}, 'Property deleted successfully');
@@ -464,7 +463,7 @@ export const recordView = async (req: AuthRequest, res: Response): Promise<void>
         await viewRepository.save(view);
 
         // Increment views count
-        property.views = (property.views || 0) + 1;
+        property.viewsCount = (property.viewsCount || 0) + 1;
         await propertyRepository.save(property);
       }
     }

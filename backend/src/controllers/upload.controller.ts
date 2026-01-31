@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { AppDataSource } from '../database/connection';
-import { PropertyMedia } from '../models/PropertyMedia.model';
+import { PropertyMedia, MediaType } from '../models/PropertyMedia.model';
 import { Property } from '../models/Property.model';
 import { Profile } from '../models/Profile.model';
 import { successResponse, errorResponse } from '../utils/response.util';
@@ -91,9 +91,8 @@ export const uploadPropertyImages = async (req: AuthRequest, res: Response): Pro
       mediaRepository.create({
         propertyId,
         url: result.secure_url,
-        publicId: result.public_id,
-        type: result.resource_type === 'video' ? 'video' : 'image',
-        isPrimary: index === 0, // First image is primary
+        mediaType: result.resource_type === 'video' ? MediaType.VIDEO : MediaType.IMAGE,
+        order: index,
       })
     );
 
@@ -145,8 +144,10 @@ export const deletePropertyImage = async (req: AuthRequest, res: Response): Prom
       return;
     }
 
-    // Delete from Cloudinary
-    await deleteImage(media.publicId);
+    // Delete from Cloudinary (extract public_id from URL)
+    // Cloudinary URL format: https://res.cloudinary.com/{cloud_name}/{resource_type}/upload/{public_id}.{format}
+    const publicId = media.url.split('/').slice(-1)[0].split('.')[0];
+    await deleteImage(publicId);
 
     // Delete from database
     await mediaRepository.remove(media);
@@ -188,11 +189,15 @@ export const setPrimaryImage = async (req: AuthRequest, res: Response): Promise<
 
     const mediaRepository = AppDataSource.getRepository(PropertyMedia);
 
-    // Set all images to non-primary
-    await mediaRepository.update({ propertyId }, { isPrimary: false });
-
-    // Set selected image as primary
-    const result = await mediaRepository.update({ id: mediaId, propertyId }, { isPrimary: true });
+    // Set selected image as first (order 0) and shift others
+    const media = await mediaRepository.findOne({ where: { id: mediaId, propertyId } });
+    if (!media) {
+      errorResponse(res, 'Media not found', 404);
+      return;
+    }
+    
+    // Set this media to order 0
+    const result = await mediaRepository.update({ id: mediaId, propertyId }, { order: 0 });
 
     if (result.affected === 0) {
       errorResponse(res, 'Media not found', 404);
@@ -206,7 +211,7 @@ export const setPrimaryImage = async (req: AuthRequest, res: Response): Promise<
 };
 
 /**
- * Upload profile avatar
+ * Upload profile avatarUrl
  */
 export const uploadAvatar = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
@@ -224,9 +229,9 @@ export const uploadAvatar = async (req: AuthRequest, res: Response): Promise<voi
     }
 
     // Upload to Cloudinary
-    const result = await uploadBufferToCloudinary(file.buffer, `rwanda-real-estate/avatars/${userId}`);
+    const result = await uploadBufferToCloudinary(file.buffer, `rwanda-real-estate/avatarUrls/${userId}`);
 
-    // Update profile with new avatar URL
+    // Update profile with new avatarUrl URL
     const profileRepository = AppDataSource.getRepository(Profile);
     let profile = await profileRepository.findOne({
       where: { userId },
@@ -236,24 +241,24 @@ export const uploadAvatar = async (req: AuthRequest, res: Response): Promise<voi
       // Create profile if it doesn't exist
       profile = profileRepository.create({
         userId,
-        avatar: result.secure_url,
+        avatarUrl: result.secure_url,
       });
     } else {
-      // Delete old avatar from Cloudinary if exists
-      if (profile.avatar) {
+      // Delete old avatarUrl from Cloudinary if exists
+      if (profile.avatarUrl) {
         try {
-          const publicId = profile.avatar.split('/').slice(-2).join('/').split('.')[0];
+          const publicId = profile.avatarUrl.split('/').slice(-2).join('/').split('.')[0];
           await deleteImage(publicId);
         } catch (error) {
-          console.error('Failed to delete old avatar:', error);
+          console.error('Failed to delete old avatarUrl:', error);
         }
       }
-      profile.avatar = result.secure_url;
+      profile.avatarUrl = result.secure_url;
     }
 
     await profileRepository.save(profile);
 
-    successResponse(res, { avatar: result.secure_url }, 'Avatar uploaded successfully');
+    successResponse(res, { avatarUrl: result.secure_url }, 'Avatar uploaded successfully');
   } catch (error: any) {
     errorResponse(res, error.message, 500);
   }

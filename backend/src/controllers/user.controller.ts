@@ -119,7 +119,7 @@ export const updatePreferences = async (req: AuthRequest, res: Response): Promis
         budgetMax: maxPrice ?? null,
         preferredLocations: locations ?? [],
         requiredAmenities: amenities ?? [],
-        surveyResponses: notificationSettings ? { notificationSettings } : null,
+        surveyResponses: notificationSettings ? { notificationSettings } : undefined,
       });
     } else {
       // Update existing preferences
@@ -217,7 +217,7 @@ export const submitSurvey = async (req: AuthRequest, res: Response): Promise<voi
         budgetMax: priceRange?.max ?? null,
         preferredLocations: preferredLocations || [],
         requiredAmenities: mustHaveAmenities || [],
-        surveyResponses: notificationPreferences ? { notificationSettings: notificationPreferences } : null,
+        surveyResponses: notificationPreferences ? { notificationSettings: notificationPreferences } : undefined,
       });
     } else {
       preferences.propertyTypes = propertyTypes || preferences.propertyTypes;

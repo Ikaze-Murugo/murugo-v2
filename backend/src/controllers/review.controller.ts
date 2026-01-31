@@ -28,7 +28,6 @@ export const createReview = async (req: AuthRequest, res: Response): Promise<voi
       revieweeId,
       rating,
       comment,
-      type: type || 'property',
     });
 
     await reviewRepository.save(review);
