@@ -68,7 +68,7 @@ app.get('/ready', async (req, res) => {
 });
 
 // API routes
-app.use('/api/v1', routes);
+app.use('/', routes);
 
 // 404 handler
 app.use(notFound);
