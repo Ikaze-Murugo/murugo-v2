@@ -58,8 +58,8 @@ export default function ProfilePage() {
       profile: {
         name: user.profile?.name || "",
         bio: user.profile?.bio || "",
-        company: user.profile?.company || "",
-        whatsapp: user.profile?.whatsapp || "",
+        company: user.profile?.companyName || "",
+        whatsapp: user.whatsappNumber || "",
       },
     } : undefined,
   });
@@ -307,7 +307,7 @@ export default function ProfilePage() {
                   <div>
                     <p className="text-sm font-medium">WhatsApp</p>
                     <p className="text-sm text-muted-foreground">
-                      {user.profile?.whatsapp || "Not set"}
+                      {user.whatsappNumber || "Not set"}
                     </p>
                   </div>
                 </div>

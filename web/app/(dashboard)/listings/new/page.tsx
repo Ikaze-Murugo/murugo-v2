@@ -1,5 +1,8 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+export const dynamicParams = true;
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -20,7 +23,7 @@ const propertySchema = z.object({
   propertyType: z.nativeEnum(PropertyType),
   transactionType: z.nativeEnum(TransactionType),
   price: z.number().min(1, "Price must be greater than 0"),
-  currency: z.string().default("RWF"),
+  currency: z.string(),
   district: z.string().min(2, "District is required"),
   sector: z.string().min(2, "Sector is required"),
   cell: z.string().optional(),
@@ -31,7 +34,7 @@ const propertySchema = z.object({
   bathrooms: z.number().optional(),
   sizeSqm: z.number().optional(),
   amenities: z.string().optional(),
-  status: z.nativeEnum(PropertyStatus).default(PropertyStatus.AVAILABLE),
+  status: z.nativeEnum(PropertyStatus),
 });
 
 type PropertyFormData = z.infer<typeof propertySchema>;
@@ -104,7 +107,9 @@ export default function AddPropertyPage() {
         sizeSqm: data.sizeSqm,
         amenities: amenitiesList,
         status: data.status,
-        media: imageUrls.map((url) => ({ url, type: "image" as const })),
+        // Note: media is handled separately via image upload endpoints
+        // The backend expects full PropertyMedia objects with id, propertyId, order, createdAt
+        // which we don't have when creating. Images are managed through separate upload endpoints.
       };
 
       return propertyApi.create(propertyData);

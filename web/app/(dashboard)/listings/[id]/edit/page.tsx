@@ -10,7 +10,7 @@ import { propertyApi, uploadApi } from "@/lib/api/endpoints";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PropertyType, TransactionType, PropertyStatus } from "@/lib/types";
+import { PropertyType, TransactionType, PropertyStatus, Property } from "@/lib/types";
 import { toast } from "@/lib/hooks/use-toast";
 import { ArrowLeft, Upload, X } from "lucide-react";
 
@@ -116,7 +116,7 @@ export default function EditPropertyPage() {
         ? data.amenities.split(",").map((a) => a.trim()).filter(Boolean)
         : [];
 
-      const propertyData = {
+      const propertyData: Partial<Property> = {
         title: data.title,
         description: data.description,
         propertyType: data.propertyType,
@@ -136,7 +136,9 @@ export default function EditPropertyPage() {
         sizeSqm: data.sizeSqm,
         amenities: amenitiesList,
         status: data.status,
-        media: allImageUrls.map((url) => ({ url, type: "image" as const })),
+        // Note: media is handled separately via image upload endpoints
+        // The backend expects full PropertyMedia objects with id, propertyId, order, createdAt
+        // which we don't have when updating. Images are managed through separate upload/delete endpoints.
       };
 
       return propertyApi.update(propertyId, propertyData);
