@@ -18,7 +18,7 @@ export default function DashboardPage() {
     queryFn: () => favoriteApi.getAll(),
   });
 
-  const properties = myPropertiesData?.data || [];
+  const properties = myPropertiesData?.properties || [];
   const totalViews = properties.reduce((sum, p) => sum + (p.viewsCount || 0), 0);
   const availableProperties = properties.filter((p) => p.status === "available").length;
 
@@ -138,7 +138,9 @@ export default function DashboardPage() {
                   <div className="flex-1">
                     <h3 className="font-semibold">{property.title}</h3>
                     <p className="text-sm text-muted-foreground">
-                      {property.location.sector}, {property.location.district}
+                      {property.location
+                        ? [property.location.sector, property.location.district].filter(Boolean).join(", ")
+                        : "—"}
                     </p>
                   </div>
                   <div className="flex items-center gap-4">

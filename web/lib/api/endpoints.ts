@@ -80,9 +80,10 @@ export const propertyApi = {
   },
 
   getMyProperties: async (filters?: PropertyFilters) => {
-    const response = await apiClient.get<{ data: PaginatedResponse<Property> }>("/properties/my", {
-      params: filters,
-    });
+    // Backend returns { properties, pagination } (same shape as getAll)
+    const response = await apiClient.get<{
+      data: { properties: Property[]; pagination: PaginationMeta };
+    }>("/properties/my", { params: filters });
     return response.data.data;
   },
 };

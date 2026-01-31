@@ -64,6 +64,7 @@ export default function EditPropertyPage() {
   // Populate form when property data loads
   useEffect(() => {
     if (property) {
+      const loc = property.location;
       reset({
         title: property.title,
         description: property.description,
@@ -71,12 +72,12 @@ export default function EditPropertyPage() {
         transactionType: property.transactionType,
         price: property.price,
         currency: property.currency,
-        district: property.location.district,
-        sector: property.location.sector,
-        cell: property.location.cell,
-        address: property.location.address,
-        latitude: property.location.latitude,
-        longitude: property.location.longitude,
+        district: loc?.district ?? "",
+        sector: loc?.sector ?? "",
+        cell: loc?.cell ?? "",
+        address: loc?.address ?? "",
+        latitude: loc?.latitude,
+        longitude: loc?.longitude,
         bedrooms: property.bedrooms,
         bathrooms: property.bathrooms,
         sizeSqm: property.sizeSqm,

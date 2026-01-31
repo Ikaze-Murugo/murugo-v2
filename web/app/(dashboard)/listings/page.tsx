@@ -52,7 +52,7 @@ export default function MyListingsPage() {
     }
   };
 
-  const properties = data?.data || [];
+  const properties = data?.properties || [];
 
   if (isLoading) {
     return (
@@ -142,7 +142,9 @@ export default function MyListingsPage() {
                         <div className="flex items-center text-sm text-muted-foreground mb-2">
                           <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
                           <span className="truncate">
-                            {property.location.sector}, {property.location.district}
+                            {property.location
+                              ? [property.location.sector, property.location.district].filter(Boolean).join(", ")
+                              : "—"}
                           </span>
                         </div>
                       </div>
