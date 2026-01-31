@@ -61,7 +61,7 @@ export function PropertyCard({ property, onFavoriteChange }: PropertyCardProps) 
     }
   };
 
-  const primaryImage = property.media?.[0]?.url || "/placeholder-property.jpg";
+  const primaryImage = property.media?.[0]?.url;
   const locationString = property.location
     ? [property.location.sector, property.location.district].filter(Boolean).join(", ") || "Location TBD"
     : "Location TBD";
@@ -71,13 +71,19 @@ export function PropertyCard({ property, onFavoriteChange }: PropertyCardProps) 
       <Card className="group overflow-hidden hover:shadow-lg transition-shadow duration-300">
         {/* Image */}
         <div className="relative h-48 overflow-hidden bg-muted">
-          <Image
-            src={primaryImage}
-            alt={property.title}
-            fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
-          />
+          {primaryImage ? (
+            <Image
+              src={primaryImage}
+              alt={property.title}
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">
+              No image
+            </div>
+          )}
           
           {/* Favorite Button */}
           <button
