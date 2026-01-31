@@ -116,10 +116,10 @@ router.post('/:id/contact', authenticate, recordContact);
 router.post('/:id/share', recordShare);
 
 // Protected routes (require authentication)
+// Create: JSON body only (images uploaded via POST /upload/multiple then POST /:id/media)
 router.post(
   '/',
   authenticate,
-  upload.array('images', 20),
   validateRequest(createPropertySchema),
   propertyController.createProperty
 );
