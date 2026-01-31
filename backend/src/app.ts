@@ -67,8 +67,8 @@ app.get('/ready', async (req, res) => {
   }
 });
 
-// API routes
-app.use('/', routes);
+// API routes (frontend and docs expect /api/v1 prefix)
+app.use('/api/v1', routes);
 
 // 404 handler
 app.use(notFound);
