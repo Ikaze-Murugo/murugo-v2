@@ -1,5 +1,6 @@
 "use client";
 
+import type { Metadata } from "next";
 import { Button } from "@/components/ui/button";
 import { PropertyCard } from "@/components/property/property-card";
 import { propertyApi } from "@/lib/api/endpoints";

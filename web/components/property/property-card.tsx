@@ -5,6 +5,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Heart, MapPin, Bed, Bath, Square } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { favoriteApi } from "@/lib/api/endpoints";
 import { useAuth } from "@/lib/hooks/use-auth";
@@ -70,10 +71,12 @@ export function PropertyCard({ property, onFavoriteChange }: PropertyCardProps) 
       <Card className="group overflow-hidden hover:shadow-lg transition-shadow duration-300">
         {/* Image */}
         <div className="relative h-48 overflow-hidden bg-muted">
-          <img
+          <Image
             src={primaryImage}
             alt={property.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className="object-cover group-hover:scale-105 transition-transform duration-300"
           />
           
           {/* Favorite Button */}
