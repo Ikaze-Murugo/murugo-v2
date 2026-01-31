@@ -8,7 +8,7 @@ import { successResponse, errorResponse } from '../utils/response.util';
 export const addFavorite = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user?.id;
-    const { propertyId } = req.body;
+    const propertyId = req.params.propertyId;
 
     if (!userId) {
       errorResponse(res, 'User not authenticated', 401);

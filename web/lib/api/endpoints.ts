@@ -117,8 +117,9 @@ export const userApi = {
 
 export const favoriteApi = {
   getAll: async () => {
-    const response = await apiClient.get<{ data: Favorite[] }>("/favorites");
-    return response.data.data;
+    const response = await apiClient.get<{ data: { favorites?: Favorite[]; pagination?: unknown } }>("/favorites");
+    const data = response.data?.data;
+    return Array.isArray(data) ? data : (data?.favorites ?? []);
   },
 
   add: async (propertyId: string) => {

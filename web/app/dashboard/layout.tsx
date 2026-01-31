@@ -20,7 +20,7 @@ import { useState } from "react";
 
 const baseNavigation = [
   { name: "Dashboard", href: "/dashboard", icon: Home },
-  { name: "Favorites", href: "/favorites", icon: Heart },
+  { name: "Favorites", href: "/dashboard/favorites", icon: Heart },
   { name: "Profile", href: "/dashboard/profile", icon: User },
 ];
 
