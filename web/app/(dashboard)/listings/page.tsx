@@ -13,16 +13,34 @@ import {
   MapPin,
   ExternalLink,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "@/lib/hooks/use-toast";
+import { useAuth } from "@/lib/hooks/use-auth";
 
 export default function MyListingsPage() {
   const queryClient = useQueryClient();
+  const router = useRouter();
+  const { user } = useAuth();
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user && user.role !== "lister" && user.role !== "admin") {
+      toast({
+        title: "Access restricted",
+        description: "Only listers can manage property listings.",
+        variant: "destructive",
+      });
+      router.replace("/dashboard");
+    }
+  }, [user, router]);
+
+  const canManageListings = user?.role === "lister" || user?.role === "admin";
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["my-properties"],
     queryFn: () => propertyApi.getMyProperties({ limit: 100 }),
+    enabled: canManageListings,
   });
 
   const deleteMutation = useMutation({
@@ -53,6 +71,14 @@ export default function MyListingsPage() {
   };
 
   const properties = data?.properties || [];
+
+  if (user && !canManageListings) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent" />
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

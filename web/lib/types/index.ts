@@ -61,7 +61,8 @@ export interface RegisterRequest {
   email: string;
   phone: string;
   password: string;
-  role?: UserRole;
+  name?: string;
+  role: UserRole;
   profileType?: ProfileType;
 }
 

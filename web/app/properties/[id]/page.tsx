@@ -6,23 +6,25 @@ import { Button } from "@/components/ui/button";
 import { propertyApi } from "@/lib/api/endpoints";
 import { useQuery } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   MapPin,
   Bed,
   Bath,
   Square,
-  Calendar,
   Eye,
   Share2,
   ArrowLeft,
   Check,
 } from "lucide-react";
 import { toast } from "@/lib/hooks/use-toast";
+import { useAuth } from "@/lib/hooks/use-auth";
 
 export default function PropertyDetailPage() {
   const params = useParams();
   const router = useRouter();
   const propertyId = params.id as string;
+  const { isAuthenticated } = useAuth();
 
   const { data: property, isLoading, error } = useQuery({
     queryKey: ["property", propertyId],
@@ -223,21 +225,41 @@ export default function PropertyDetailPage() {
           {/* Sidebar */}
           <div className="lg:col-span-1">
             <div className="sticky top-8 space-y-6">
-              {/* Contact Card */}
+              {/* Contact Card - only show contact info when authenticated */}
               <div className="p-6 border rounded-lg bg-background shadow-lg">
                 <h3 className="text-xl font-bold mb-4">Contact Property Owner</h3>
-                <ContactButton
-                  property={property}
-                  landlord={{
-                    name: property.lister?.profile?.name || property.lister?.email || "Property Owner",
-                    phone: property.lister?.phone,
-                    email: property.lister?.email,
-                  }}
-                />
+                {isAuthenticated ? (
+                  <ContactButton
+                    property={property}
+                    landlord={{
+                      name: property.lister?.profile?.name || property.lister?.email || "Property Owner",
+                      phone: property.lister?.phone,
+                      email: property.lister?.email,
+                    }}
+                  />
+                ) : (
+                  <div className="space-y-4">
+                    <p className="text-muted-foreground text-sm">
+                      Sign up or log in to view contact details and get in touch with the property owner.
+                    </p>
+                    <div className="flex flex-col gap-2">
+                      <Link href="/register?role=seeker">
+                        <Button className="w-full" size="lg">
+                          Sign up to contact lister
+                        </Button>
+                      </Link>
+                      <Link href="/login">
+                        <Button variant="outline" className="w-full" size="lg">
+                          Log in to contact
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Map Placeholder */}
-              {property.location.latitude && property.location.longitude && (
+              {property.location?.latitude && property.location?.longitude && (
                 <div className="p-6 border rounded-lg bg-background">
                   <h3 className="text-xl font-bold mb-4">Location</h3>
                   <div className="h-64 bg-muted rounded-lg flex items-center justify-center">

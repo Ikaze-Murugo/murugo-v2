@@ -8,6 +8,18 @@ export function useAuth() {
   const router = useRouter();
   const { user, isAuthenticated, setAuth, setUser, logout: logoutStore } = useAuthStore();
 
+  const getRedirectByRole = (role: string) => {
+    switch (role) {
+      case "admin":
+        return "/admin";
+      case "lister":
+        return "/dashboard/listings";
+      case "seeker":
+      default:
+        return "/";
+    }
+  };
+
   const login = async (data: LoginRequest) => {
     try {
       const response = await authApi.login(data);
@@ -18,7 +30,7 @@ export function useAuth() {
         title: "Success",
         description: "Logged in successfully",
       });
-      router.push("/");
+      router.push(getRedirectByRole(response.user?.role ?? "seeker"));
       return response;
     } catch (error: any) {
       toast({
@@ -40,7 +52,7 @@ export function useAuth() {
         title: "Success",
         description: "Account created successfully",
       });
-      router.push("/");
+      router.push(getRedirectByRole(response.user?.role ?? "seeker"));
       return response;
     } catch (error: any) {
       toast({

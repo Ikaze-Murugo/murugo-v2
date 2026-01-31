@@ -1,9 +1,9 @@
 "use client";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 export const dynamicParams = true;
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PropertyType, TransactionType, PropertyStatus } from "@/lib/types";
 import { toast } from "@/lib/hooks/use-toast";
+import { useAuth } from "@/lib/hooks/use-auth";
 import { ArrowLeft, ArrowRight, Upload, X } from "lucide-react";
 
 const propertySchema = z.object({
@@ -48,10 +49,32 @@ const STEPS = [
 
 export default function AddPropertyPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [images, setImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+
+  useEffect(() => {
+    if (user && user.role !== "lister" && user.role !== "admin") {
+      toast({
+        title: "Access restricted",
+        description: "Only listers can create property listings.",
+        variant: "destructive",
+      });
+      router.replace("/dashboard");
+    }
+  }, [user, router]);
+
+  const canCreate = user?.role === "lister" || user?.role === "admin";
+
+  if (user && !canCreate) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent" />
+      </div>
+    );
+  }
 
   const {
     register,
