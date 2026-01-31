@@ -52,7 +52,7 @@ export const getProfile = async (req: AuthRequest, res: Response): Promise<void>
 export const updateProfile = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user?.id;
-    const { name, bio, location, avatar, company, website } = req.body;
+    const { name, bio, company, avatarUrl } = req.body;
 
     if (!userId) {
       errorResponse(res, 'User not authenticated', 401);
@@ -68,21 +68,16 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
       // Create profile if it doesn't exist
       profile = profileRepository.create({
         userId,
-        name,
-        bio,
-        location,
-        avatar,
-        company,
-        website,
+        name: name ?? '',
+        bio: bio ?? null,
+        companyName: company ?? null,
+        avatarUrl: avatarUrl ?? null,
       });
     } else {
       // Update existing profile
       if (name !== undefined) profile.name = name;
       if (bio !== undefined) profile.bio = bio;
-      if (location !== undefined) profile.location = location;
-      if (avatar !== undefined) profile.avatar = avatar;
-      if (company !== undefined) profile.company = company;
-      if (website !== undefined) profile.website = website;
+      if (company !== undefined) profile.companyName = company;
     }
 
     await profileRepository.save(profile);

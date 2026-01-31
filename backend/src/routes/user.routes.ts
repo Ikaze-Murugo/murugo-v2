@@ -10,6 +10,7 @@ router.use(authenticate);
 
 router.get('/profile', userController.getProfile);
 router.put('/profile', upload.single('avatar'), userController.updateProfile);
+router.put('/password', userController.updatePassword);
 router.put('/preferences', userController.updatePreferences);
 router.get('/preferences', userController.getPreferences);
 router.post('/survey', userController.submitSurvey);

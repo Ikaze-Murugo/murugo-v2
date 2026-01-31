@@ -74,7 +74,12 @@ export default function ProfilePage() {
   });
 
   const updateProfileMutation = useMutation({
-    mutationFn: (data: ProfileFormData) => userApi.updateProfile(data),
+    mutationFn: (data: ProfileFormData) =>
+      userApi.updateProfile({
+        name: data.profile?.name,
+        bio: data.profile?.bio,
+        company: data.profile?.company,
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["profile"] });
       toast({
@@ -292,7 +297,7 @@ export default function ProfilePage() {
                   <div>
                     <p className="text-sm font-medium">Company</p>
                     <p className="text-sm text-muted-foreground">
-                      {user.profile?.company || "Not set"}
+                      {user.profile?.companyName ?? "Not set"}
                     </p>
                   </div>
                 </div>

@@ -46,6 +46,9 @@ export default function FavoritesPage() {
     },
   });
 
+  const isRemoving = (propertyId: string) =>
+    removeMutation.isPending && removeMutation.variables === propertyId;
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -137,11 +140,14 @@ export default function FavoritesPage() {
 
                   {/* Remove Button */}
                   <button
-                    onClick={() => removeMutation.mutate(property.id)}
-                    disabled={removeMutation.isPending}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      removeMutation.mutate(property.id);
+                    }}
+                    disabled={isRemoving(property.id)}
                     className="absolute top-3 right-3 p-2 bg-white/90 hover:bg-white rounded-full shadow-lg transition-colors"
                   >
-                    {removeMutation.isPending ? (
+                    {isRemoving(property.id) ? (
                       <div className="h-5 w-5 animate-spin rounded-full border-2 border-solid border-current border-r-transparent" />
                     ) : (
                       <Trash2 className="h-5 w-5 text-red-600" />

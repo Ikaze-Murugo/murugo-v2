@@ -94,18 +94,19 @@ export const propertyApi = {
 
 export const userApi = {
   getProfile: async () => {
-    // Backend uses /users/profile, not /user/profile
-    const response = await apiClient.get<{ data: User }>("/users/profile");
-    return response.data.data;
+    // Backend returns { user: User }; we return the user object for the page
+    const response = await apiClient.get<{ data: { user: User } }>("/users/profile");
+    return response.data.data.user;
   },
 
-  updateProfile: async (data: Partial<User>) => {
-    // Backend uses /users/profile, not /user/profile
-    const response = await apiClient.put<{ data: User }>("/users/profile", data);
+  updateProfile: async (data: { name?: string; bio?: string; company?: string; website?: string }) => {
+    // Backend expects flat profile fields: name, bio, company, website (not nested)
+    const response = await apiClient.put<{ data: { profile: unknown } }>("/users/profile", data);
     return response.data.data;
   },
 
   updatePassword: async (currentPassword: string, newPassword: string) => {
+    // Backend route: add router.put('/password', userController.updatePassword) if missing
     await apiClient.put("/users/password", { currentPassword, newPassword });
   },
 };
