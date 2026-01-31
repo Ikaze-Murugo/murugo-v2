@@ -6,7 +6,7 @@ export const registerSchema = Joi.object({
   password: Joi.string().min(8).required(),
   role: Joi.string().valid('seeker', 'lister').required(),
   profileType: Joi.string().valid('individual', 'commissioner', 'company').optional(),
-  name: Joi.string().required(),
+  name: Joi.string().allow('').optional(),
   whatsappNumber: Joi.string().optional(),
 });
 

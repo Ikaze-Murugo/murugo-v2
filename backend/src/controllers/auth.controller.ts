@@ -37,10 +37,10 @@ export const register = async (req: AuthRequest, res: Response): Promise<void> =
 
     await userRepository.save(user);
 
-    // Create profile
+    // Create profile (default name from email if not provided)
     const profile = profileRepository.create({
       userId: user.id,
-      name,
+      name: name && name.trim() ? name.trim() : (email?.split('@')[0] || 'User'),
     });
 
     await profileRepository.save(profile);

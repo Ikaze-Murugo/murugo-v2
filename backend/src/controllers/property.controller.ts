@@ -81,10 +81,10 @@ export const getAllProperties = async (req: AuthRequest, res: Response): Promise
     const skip = (Number(page) - 1) * Number(limit);
 
     // Build query conditions
-    const where: any = { status: 'active' };
+    const where: any = { status: PropertyStatus.AVAILABLE };
 
     if (type) {
-      where.type = type;
+      where.propertyType = type;
     }
 
     if (minPrice && maxPrice) {
@@ -108,8 +108,7 @@ export const getAllProperties = async (req: AuthRequest, res: Response): Promise
     }
 
     if (search) {
-      // Search in name, description, and location
-      where.name = Like(`%${search}%`);
+      where.title = Like(`%${search}%`);
     }
 
     // Get properties with pagination
@@ -159,7 +158,7 @@ export const getFeaturedProperties = async (req: AuthRequest, res: Response): Pr
     const [properties, total] = await propertyRepository.findAndCount({
       where: { status: PropertyStatus.AVAILABLE },
       relations: ['lister', 'lister.profile', 'media'],
-      order: { views: 'DESC', createdAt: 'DESC' },
+      order: { viewsCount: 'DESC', createdAt: 'DESC' },
       skip,
       take: Number(limit),
     });
