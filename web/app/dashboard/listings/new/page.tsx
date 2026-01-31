@@ -155,8 +155,8 @@ export default function AddPropertyPage() {
 
   const watchedTitle = watch("title", "");
   const watchedDescription = watch("description", "");
-  const watchedPropertyType = watch("propertyType", "");
-  const watchedTransactionType = watch("transactionType", "");
+  const watchedPropertyType = watch("propertyType");
+  const watchedTransactionType = watch("transactionType");
   const watchedPrice = watch("price");
 
   const currentProvince = RWANDA_LOCATIONS.find((p) => p.id === provinceId);
