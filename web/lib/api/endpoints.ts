@@ -248,9 +248,46 @@ export interface AdminStats {
   totalViews: number;
 }
 
+export interface AdminUser {
+  id: string;
+  email: string;
+  phone: string;
+  role: string;
+  profileType?: string;
+  isActive: boolean;
+  isEmailVerified: boolean;
+  isPhoneVerified: boolean;
+  createdAt: string;
+  lastLogin?: string | null;
+  profile?: { id: string; name?: string; companyName?: string } | null;
+  propertiesCount?: number;
+}
+
+export interface AdminUsersFilters {
+  role?: string;
+  search?: string;
+  page?: number;
+  limit?: number;
+}
+
 export const adminApi = {
   getStats: async (): Promise<AdminStats> => {
     const response = await apiClient.get<{ data: AdminStats }>("/admin/stats");
+    return response.data.data;
+  },
+
+  getUsers: async (filters?: AdminUsersFilters): Promise<{
+    users: AdminUser[];
+    pagination: { total: number; page: number; limit: number; totalPages: number };
+  }> => {
+    const params: Record<string, string | number | undefined> = {};
+    if (filters?.role) params.role = filters.role;
+    if (filters?.search) params.search = filters.search;
+    if (filters?.page != null) params.page = filters.page;
+    if (filters?.limit != null) params.limit = filters.limit;
+    const response = await apiClient.get<{
+      data: { users: AdminUser[]; pagination: { total: number; page: number; limit: number; totalPages: number } };
+    }>("/admin/users", { params });
     return response.data.data;
   },
 };
