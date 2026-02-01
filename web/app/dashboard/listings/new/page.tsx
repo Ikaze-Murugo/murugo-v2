@@ -413,8 +413,8 @@ export default function AddPropertyPage() {
         </div>
       </div>
 
-      {/* Progress Steps */}
-      <div className="flex items-center justify-between">
+      {/* Progress Steps - sticky so section number stays visible when scrolling (below mobile header on small screens) */}
+      <div className="sticky top-14 lg:top-0 z-10 py-3 -mx-4 px-4 lg:-mx-8 lg:px-8 bg-background/95 backdrop-blur border-b shadow-sm flex items-center justify-between">
         {STEPS.map((step, index) => (
           <div key={step.id} className="flex items-center flex-1">
             <div className="flex flex-col items-center flex-1">
@@ -530,7 +530,7 @@ export default function AddPropertyPage() {
                         onClick={() => setValue("propertyType", type)}
                         className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm ${
                           watchedPropertyType === type
-                            ? "border-primary bg-primary/10 text-primary"
+                            ? "border-[#949DDB] bg-[#949DDB] text-white"
                             : "border-input hover:bg-muted"
                         }`}
                       >
@@ -560,7 +560,7 @@ export default function AddPropertyPage() {
                         onClick={() => setValue("transactionType", value)}
                         className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium ${
                           watchedTransactionType === value
-                            ? "border-primary bg-primary text-primary-foreground"
+                            ? "border-[#949DDB] bg-[#949DDB] text-white"
                             : "border-input hover:bg-muted"
                         }`}
                       >
@@ -885,7 +885,7 @@ export default function AddPropertyPage() {
                               key={opt.id}
                               className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer text-sm ${
                                 selectedAmenities.includes(opt.label)
-                                  ? "border-primary bg-primary/10 text-primary"
+                                  ? "border-[#949DDB] bg-[#949DDB] text-white"
                                   : "border-input hover:bg-muted"
                               }`}
                             >
@@ -953,7 +953,7 @@ export default function AddPropertyPage() {
                         onClick={() => setValue("status", status)}
                         className={`px-4 py-2 rounded-lg border text-sm font-medium ${
                           watch("status") === status
-                            ? "border-primary bg-primary text-primary-foreground"
+                            ? "border-[#949DDB] bg-[#949DDB] text-white"
                             : "border-input hover:bg-muted"
                         }`}
                       >

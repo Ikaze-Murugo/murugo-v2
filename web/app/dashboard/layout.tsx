@@ -38,8 +38,15 @@ export default function DashboardLayout({
 }) {
   const { isAuthenticated, user, logout } = useAuth();
   const router = useRouter();
-  const pathname = usePathname();
+  const rawPathname = usePathname();
+  const pathname = typeof rawPathname === "string" ? rawPathname.replace(/\/$/, "") || "/" : "";
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const isActive = (href: string) => {
+    if (!pathname) return false;
+    const normalizedHref = href.replace(/\/$/, "") || "/";
+    return pathname === normalizedHref || pathname.startsWith(normalizedHref + "/");
+  };
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -114,9 +121,7 @@ export default function DashboardLayout({
 
             {/* Navigation - role-based: listers see My Listings / Add Property; admins see Admin */}
             <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-              {baseNavigation.map((item) => {
-                const isActive = pathname === item.href || pathname?.startsWith(item.href + "/");
-                return (
+              {baseNavigation.map((item) => (
                   <Link
                     key={item.name}
                     href={item.href}
@@ -124,64 +129,45 @@ export default function DashboardLayout({
                     className={`
                       flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium
                       transition-colors
-                      ${
-                        isActive
-                          ? "bg-primary text-white"
-                          : "text-foreground hover:bg-muted"
-                      }
+                      ${isActive(item.href) ? "bg-primary text-white" : "text-foreground hover:bg-muted"}
                     `}
                   >
                     <item.icon className="h-5 w-5" />
                     {item.name}
                   </Link>
-                );
-              })}
+              ))}
               {(user?.role === "lister" || user?.role === "admin") &&
-                listerNavigation.map((item) => {
-                  const isActive = pathname === item.href || pathname?.startsWith(item.href + "/");
-                  return (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      onClick={() => setSidebarOpen(false)}
-                      className={`
-                        flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium
-                        transition-colors
-                        ${
-                          isActive
-                            ? "bg-primary text-white"
-                            : "text-foreground hover:bg-muted"
-                        }
-                      `}
-                    >
-                      <item.icon className="h-5 w-5" />
-                      {item.name}
-                    </Link>
-                  );
-                })}
+                listerNavigation.map((item) => (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    onClick={() => setSidebarOpen(false)}
+                    className={`
+                      flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium
+                      transition-colors
+                      ${isActive(item.href) ? "bg-primary text-white" : "text-foreground hover:bg-muted"}
+                    `}
+                  >
+                    <item.icon className="h-5 w-5" />
+                    {item.name}
+                  </Link>
+                ))}
               {user?.role === "admin" &&
-                adminNavigation.map((item) => {
-                  const isActive = pathname === item.href || pathname?.startsWith(item.href + "/");
-                  return (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      onClick={() => setSidebarOpen(false)}
-                      className={`
-                        flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium
-                        transition-colors
-                        ${
-                          isActive
-                            ? "bg-primary text-white"
-                            : "text-foreground hover:bg-muted"
-                        }
-                      `}
-                    >
-                      <item.icon className="h-5 w-5" />
-                      {item.name}
-                    </Link>
-                  );
-                })}
+                adminNavigation.map((item) => (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    onClick={() => setSidebarOpen(false)}
+                    className={`
+                      flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium
+                      transition-colors
+                      ${isActive(item.href) ? "bg-primary text-white" : "text-foreground hover:bg-muted"}
+                    `}
+                  >
+                    <item.icon className="h-5 w-5" />
+                    {item.name}
+                  </Link>
+                ))}
             </nav>
 
             {/* Logout */}
