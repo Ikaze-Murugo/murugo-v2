@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { propertyApi } from "@/lib/api/endpoints";
+import { adminApi } from "@/lib/api/endpoints";
 import { Shield, Building2, Users, BarChart3 } from "lucide-react";
 import Link from "next/link";
 
@@ -12,9 +12,9 @@ export default function AdminPage() {
   const { user, isAuthenticated } = useAuth();
   const router = useRouter();
 
-  const { data: propertiesData } = useQuery({
-    queryKey: ["admin-stats-properties"],
-    queryFn: () => propertyApi.getAll({ limit: 1, page: 1 }),
+  const { data: stats, isLoading: statsLoading } = useQuery({
+    queryKey: ["admin-stats"],
+    queryFn: () => adminApi.getStats(),
     enabled: isAuthenticated && user?.role === "admin",
   });
 
@@ -37,7 +37,10 @@ export default function AdminPage() {
     );
   }
 
-  const totalProperties = propertiesData?.pagination?.total ?? 0;
+  const totalProperties = stats?.totalProperties ?? 0;
+  const totalUsers = stats?.totalUsers ?? 0;
+  const totalViews = stats?.totalViews ?? 0;
+  const pendingApprovals = stats?.pendingApprovals ?? 0;
 
   return (
     <div className="min-h-screen p-6 md:p-8">
@@ -57,7 +60,9 @@ export default function AdminPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total properties</p>
-                <p className="text-2xl font-bold mt-1">{totalProperties}</p>
+                <p className="text-2xl font-bold mt-1">
+                  {statsLoading ? "—" : totalProperties}
+                </p>
               </div>
               <Building2 className="h-10 w-10 text-muted-foreground" />
             </div>
@@ -73,12 +78,14 @@ export default function AdminPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Users</p>
-                <p className="text-2xl font-bold mt-1">—</p>
+                <p className="text-2xl font-bold mt-1">
+                  {statsLoading ? "—" : totalUsers}
+                </p>
               </div>
               <Users className="h-10 w-10 text-muted-foreground" />
             </div>
             <p className="text-xs text-muted-foreground mt-2">
-              User stats coming later
+              Active accounts
             </p>
           </div>
 
@@ -86,12 +93,14 @@ export default function AdminPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Views / engagement</p>
-                <p className="text-2xl font-bold mt-1">—</p>
+                <p className="text-2xl font-bold mt-1">
+                  {statsLoading ? "—" : totalViews}
+                </p>
               </div>
               <BarChart3 className="h-10 w-10 text-muted-foreground" />
             </div>
             <p className="text-xs text-muted-foreground mt-2">
-              Analytics coming later
+              Total property views
             </p>
           </div>
 
@@ -99,11 +108,13 @@ export default function AdminPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Pending approvals</p>
-                <p className="text-2xl font-bold mt-1">0</p>
+                <p className="text-2xl font-bold mt-1">
+                  {statsLoading ? "—" : pendingApprovals}
+                </p>
               </div>
             </div>
             <p className="text-xs text-muted-foreground mt-2">
-              No approval workflow yet
+              Properties with pending status
             </p>
           </div>
         </div>

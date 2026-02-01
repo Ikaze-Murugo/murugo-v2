@@ -235,3 +235,22 @@ export const uploadApi = {
     return response.data.data.urls;
   },
 };
+
+// ==========================================
+// ADMIN ENDPOINTS
+// ==========================================
+
+export interface AdminStats {
+  totalUsers: number;
+  totalProperties: number;
+  availableProperties: number;
+  pendingApprovals: number;
+  totalViews: number;
+}
+
+export const adminApi = {
+  getStats: async (): Promise<AdminStats> => {
+    const response = await apiClient.get<{ data: AdminStats }>("/admin/stats");
+    return response.data.data;
+  },
+};
