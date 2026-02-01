@@ -148,8 +148,6 @@ export default function MyListingsPage() {
       case PropertyStatus.SOLD:
       case PropertyStatus.RENTED:
         return "bg-gray-100 text-gray-800";
-      case PropertyStatus.REJECTED:
-        return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
