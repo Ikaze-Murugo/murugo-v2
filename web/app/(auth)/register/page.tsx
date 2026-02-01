@@ -146,14 +146,14 @@ function RegisterForm() {
                       flex flex-col items-start p-4 rounded-lg border-2 text-left transition-colors
                       ${
                         isSelected
-                          ? "border-primary bg-primary/5"
+                          ? "border-[#949DDB] bg-[#949DDB] text-white"
                           : "border-muted hover:border-muted-foreground/50"
                       }
                     `}
                   >
-                    <Icon className="h-5 w-5 mb-2 text-primary" />
+                    <Icon className={`h-5 w-5 mb-2 ${isSelected ? "text-white" : "text-primary"}`} />
                     <span className="font-medium">{opt.label}</span>
-                    <span className="text-xs text-muted-foreground mt-1">
+                    <span className={`text-xs mt-1 ${isSelected ? "text-white/90" : "text-muted-foreground"}`}>
                       {opt.description}
                     </span>
                   </button>

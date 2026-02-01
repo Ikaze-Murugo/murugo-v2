@@ -14,6 +14,9 @@ import {
   Menu,
   X,
   Shield,
+  CheckCircle,
+  Star,
+  Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -30,6 +33,12 @@ const listerNavigation = [
 ];
 
 const adminNavigation = [{ name: "Admin", href: "/admin", icon: Shield }];
+
+const adminSectionNavigation = [
+  { name: "Approve properties", href: "/admin?tab=approvals", icon: CheckCircle },
+  { name: "Feature properties", href: "/admin?tab=featured", icon: Star },
+  { name: "Manage users", href: "/admin?tab=users", icon: Users },
+];
 
 export default function DashboardLayout({
   children,
@@ -119,9 +128,25 @@ export default function DashboardLayout({
               </div>
             </div>
 
-            {/* Navigation - role-based: listers see My Listings / Add Property; admins see Admin */}
+            {/* Navigation - base for all; listers get My Listings / Add Property; admins get Approve/Feature/Manage + Admin */}
             <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
               {baseNavigation.map((item) => (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  onClick={() => setSidebarOpen(false)}
+                  className={`
+                    flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium
+                    transition-colors
+                    ${isActive(item.href) ? "bg-primary text-white" : "text-foreground hover:bg-muted"}
+                  `}
+                >
+                  <item.icon className="h-5 w-5" />
+                  {item.name}
+                </Link>
+              ))}
+              {user?.role === "lister" &&
+                listerNavigation.map((item) => (
                   <Link
                     key={item.name}
                     href={item.href}
@@ -135,9 +160,9 @@ export default function DashboardLayout({
                     <item.icon className="h-5 w-5" />
                     {item.name}
                   </Link>
-              ))}
-              {(user?.role === "lister" || user?.role === "admin") &&
-                listerNavigation.map((item) => (
+                ))}
+              {user?.role === "admin" &&
+                adminSectionNavigation.map((item) => (
                   <Link
                     key={item.name}
                     href={item.href}
