@@ -17,7 +17,7 @@ import {
   CheckCircle2,
   XCircle,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "@/lib/hooks/use-toast";
 import { useAuth } from "@/lib/hooks/use-auth";
@@ -154,7 +154,7 @@ export default function MyListingsPage() {
   };
 
   const getStatusActions = (property: any) => {
-    const actions: JSX.Element[] = [];
+    const actions: React.ReactElement[] = [];
     
     // Can mark as sold if it's for sale and available
     if (property.transactionType === "sale" && property.status === PropertyStatus.AVAILABLE) {
