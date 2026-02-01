@@ -117,75 +117,6 @@ export default function AddPropertyPage() {
 
   const DRAFT_KEY = "property_draft";
 
-   // Load draft from localStorage on mount
-  useEffect(() => {
-    if (typeof window !== "undefined" && !draftLoaded) {
-      try {
-        const savedDraft = localStorage.getItem(DRAFT_KEY);
-        if (savedDraft) {
-          const draft = JSON.parse(savedDraft);
-          
-          // Restore form values
-          Object.keys(draft.formData || {}).forEach((key) => {
-            setValue(key as keyof PropertyFormData, draft.formData[key]);
-          });
-          
-          // Restore other state
-          if (draft.provinceId) setProvinceId(draft.provinceId);
-          if (draft.districtId) setDistrictId(draft.districtId);
-          if (draft.sectorId) setSectorId(draft.sectorId);
-          if (draft.selectedAmenities) setSelectedAmenities(draft.selectedAmenities);
-          if (draft.currentStep) setCurrentStep(draft.currentStep);
-          
-          toast({
-            title: "Draft restored",
-            description: "Your previous work has been restored.",
-          });
-        }
-      } catch (error) {
-        console.error("Failed to load draft:", error);
-      }
-      setDraftLoaded(true);
-    }
-  }, [draftLoaded]);
-
-  // Auto-save draft every 30 seconds
-  useEffect(() => {
-    if (!draftLoaded) return;
-    
-    const interval = setInterval(() => {
-      try {
-        const formData = getValues();
-        const draft = {
-          formData,
-          provinceId,
-          districtId,
-          sectorId,
-          selectedAmenities,
-          currentStep,
-          savedAt: new Date().toISOString(),
-        };
-        
-        localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-        setLastSaved(new Date());
-      } catch (error) {
-        console.error("Failed to save draft:", error);
-      }
-    }, 30000); // Save every 30 seconds
-
-    return () => clearInterval(interval);
-  }, [draftLoaded, provinceId, districtId, sectorId, selectedAmenities, currentStep, getValues]);
-
-  // Clear draft on successful submission
-  const clearDraft = () => {
-    try {
-      localStorage.removeItem(DRAFT_KEY);
-      setLastSaved(null);
-    } catch (error) {
-      console.error("Failed to clear draft:", error);
-    }
-  };
-
   useEffect(() => {
     if (user && user.role !== "lister" && user.role !== "admin") {
       toast({
@@ -225,6 +156,75 @@ export default function AddPropertyPage() {
       cell: "",
     },
   });
+
+  // Clear draft on successful submission
+  const clearDraft = () => {
+    try {
+      localStorage.removeItem(DRAFT_KEY);
+      setLastSaved(null);
+    } catch (error) {
+      console.error("Failed to clear draft:", error);
+    }
+  };
+
+  // Load draft from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== "undefined" && !draftLoaded) {
+      try {
+        const savedDraft = localStorage.getItem(DRAFT_KEY);
+        if (savedDraft) {
+          const draft = JSON.parse(savedDraft);
+          
+          // Restore form values
+          Object.keys(draft.formData || {}).forEach((key) => {
+            setValue(key as keyof PropertyFormData, draft.formData[key]);
+          });
+          
+          // Restore other state
+          if (draft.provinceId) setProvinceId(draft.provinceId);
+          if (draft.districtId) setDistrictId(draft.districtId);
+          if (draft.sectorId) setSectorId(draft.sectorId);
+          if (draft.selectedAmenities) setSelectedAmenities(draft.selectedAmenities);
+          if (draft.currentStep) setCurrentStep(draft.currentStep);
+          
+          toast({
+            title: "Draft restored",
+            description: "Your previous work has been restored.",
+          });
+        }
+      } catch (error) {
+        console.error("Failed to load draft:", error);
+      }
+      setDraftLoaded(true);
+    }
+  }, [draftLoaded, setValue]);
+
+  // Auto-save draft every 30 seconds
+  useEffect(() => {
+    if (!draftLoaded) return;
+    
+    const interval = setInterval(() => {
+      try {
+        const formData = getValues();
+        const draft = {
+          formData,
+          provinceId,
+          districtId,
+          sectorId,
+          selectedAmenities,
+          currentStep,
+          savedAt: new Date().toISOString(),
+        };
+        
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+        setLastSaved(new Date());
+      } catch (error) {
+        console.error("Failed to save draft:", error);
+      }
+    }, 30000); // Save every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [draftLoaded, provinceId, districtId, sectorId, selectedAmenities, currentStep, getValues]);
 
   const watchedTitle = watch("title", "");
   const watchedDescription = watch("description", "");
