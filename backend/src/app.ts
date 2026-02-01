@@ -16,9 +16,26 @@ app.set('trust proxy', 1);
 // Security middleware
 app.use(helmet());
 
-// CORS configuration
+// CORS configuration: allow configured origins and their www/non-www variant
+const corsOrigins = process.env.CORS_ORIGIN?.split(',').map((o) => o.trim()).filter(Boolean) || [];
+const allowedOrigins = corsOrigins.length
+  ? corsOrigins.flatMap((origin) => {
+      try {
+        const u = new URL(origin);
+        const base = `${u.protocol}//${u.hostname}`;
+        const withWww = u.hostname.startsWith('www.') ? [origin] : [`${u.protocol}//www.${u.hostname}`];
+        const withoutWww = u.hostname.startsWith('www.') ? [`${u.protocol}//${u.hostname.replace(/^www\./, '')}`] : [origin];
+        return [...new Set([origin, ...withWww, ...withoutWww])];
+      } catch {
+        return [origin];
+      }
+    })
+  : ['*'];
 app.use(cors({
-  origin: process.env.CORS_ORIGIN?.split(',') || '*',
+  origin: allowedOrigins.length ? (origin, cb) => {
+    if (!origin || allowedOrigins.includes('*') || allowedOrigins.includes(origin)) return cb(null, true);
+    return cb(null, false);
+  } : true,
   credentials: true,
 }));
 

@@ -107,9 +107,10 @@ const getMyListings = async (req: AuthRequest, res: import('express').Response):
   }
 };
 
-// Public routes
+// Public routes (put /my/listings before /:id so "my" is not treated as id)
 router.get('/', optionalAuth, propertyController.getAllProperties);
 router.get('/featured', propertyController.getFeaturedProperties);
+router.get('/my/listings', authenticate, getMyListings);
 router.get('/:id', optionalAuth, propertyController.getPropertyById);
 router.post('/:id/view', optionalAuth, recordView);
 router.post('/:id/contact', authenticate, recordContact);
@@ -134,7 +135,6 @@ router.put(
 
 router.delete('/:id', authenticate, propertyController.deleteProperty);
 router.post('/:id/media', authenticate, propertyController.addPropertyMediaByUrls);
-router.get('/my/listings', authenticate, getMyListings);
 router.patch('/:id/status', authenticate, propertyController.updatePropertyStatus);
 router.get('/:id/analytics', authenticate, propertyController.getPropertyAnalytics);
 

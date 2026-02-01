@@ -61,8 +61,8 @@ export const propertyApi = {
   },
 
   getById: async (id: string) => {
-    const response = await apiClient.get<{ data: Property }>(`/properties/${id}`);
-    return response.data.data;
+    const response = await apiClient.get<{ data: { property: Property } }>(`/properties/${id}`);
+    return response.data.data.property;
   },
 
   create: async (data: Partial<Property>) => {
