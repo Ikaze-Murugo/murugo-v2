@@ -1,8 +1,8 @@
 "use client";
 
+import { Suspense, useEffect, useState } from "react";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { adminApi, type AdminUser } from "@/lib/api/endpoints";
 import { Shield, Building2, Users, BarChart3, CheckCircle, Star, Search, UserCog } from "lucide-react";
@@ -25,7 +25,7 @@ const ROLE_OPTIONS = [
   { value: "admin", label: "Admin" },
 ];
 
-export default function AdminPage() {
+function AdminPageContent() {
   const { user, isAuthenticated } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -378,5 +378,19 @@ export default function AdminPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function AdminPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent" />
+        </div>
+      }
+    >
+      <AdminPageContent />
+    </Suspense>
   );
 }
