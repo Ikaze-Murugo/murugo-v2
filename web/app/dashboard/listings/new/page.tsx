@@ -300,6 +300,13 @@ export default function AddPropertyPage() {
       const lat = typeof data.latitude === "number" && !Number.isNaN(data.latitude) ? data.latitude : 0;
       const lng = typeof data.longitude === "number" && !Number.isNaN(data.longitude) ? data.longitude : 0;
 
+      const num = (v: unknown): number | undefined =>
+        typeof v === "number" && !Number.isNaN(v) ? v : undefined;
+      const bedroomsVal = num(data.bedrooms);
+      const bathroomsVal = num(data.bathrooms);
+      const sizeSqmVal = num(data.sizeSqm);
+      const sizeSqmOnlyPositive = sizeSqmVal != null && sizeSqmVal > 0 ? sizeSqmVal : undefined;
+
       const propertyData = {
         title: data.title,
         description: data.description,
@@ -315,11 +322,10 @@ export default function AddPropertyPage() {
           latitude: lat,
           longitude: lng,
         },
-        bedrooms: data.bedrooms,
-        bathrooms: data.bathrooms,
-        sizeSqm: data.sizeSqm,
+        ...(bedroomsVal != null && { bedrooms: bedroomsVal }),
+        ...(bathroomsVal != null && { bathrooms: bathroomsVal }),
+        ...(sizeSqmOnlyPositive != null && { sizeSqm: sizeSqmOnlyPositive }),
         amenities: amenitiesList,
-        status: data.status,
       };
 
       const property = await propertyApi.create(propertyData);
