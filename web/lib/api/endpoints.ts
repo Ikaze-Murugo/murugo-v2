@@ -94,6 +94,11 @@ export const propertyApi = {
     );
     return response.data.data;
   },
+
+  updateStatus: async (id: string, status: string) => {
+    const response = await apiClient.patch<{ data: Property }>(`/properties/${id}/status`, { status });
+    return response.data.data;
+  },
 };
 
 // ========================================
