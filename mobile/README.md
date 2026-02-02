@@ -28,12 +28,15 @@ Cross-platform mobile application for Rwanda Real Estate Platform built with Rea
 npm install
 ```
 
-2. Copy environment variables:
+2. (Optional) Copy environment variables for local overrides:
 ```bash
 cp .env.example .env
 ```
 
-3. Configure your `.env` file with API URL and other credentials
+3. **API URL:** The app defaults to `https://api.murugohomes.com/api/v1`. To use a different backend (e.g. local), set in `.env`:
+   - `EXPO_PUBLIC_API_URL=https://api.murugohomes.com/api/v1` (production)
+   - `EXPO_PUBLIC_API_URL=http://YOUR_LOCAL_IP:5000/api/v1` (local dev)
+   - `EXPO_PUBLIC_SOCKET_URL` for Socket.io (same host, no path)
 
 ## Development
 

@@ -1,17 +1,32 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, StyleSheet, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { TextInput, Button, Text, Title } from 'react-native-paper';
 import { theme, spacing } from '../../config/theme';
+import { authApi } from '../../api/auth';
+import { useAuthStore } from '../../store/slices/authSlice';
 
 export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const setAuth = useAuthStore((s) => s.setAuth);
 
   const handleLogin = async () => {
+    if (!email.trim() || !password) {
+      Alert.alert('Error', 'Please enter email and password.');
+      return;
+    }
     setLoading(true);
-    // Implement login logic
-    setLoading(false);
+    try {
+      const data = await authApi.login({ email: email.trim(), password });
+      await setAuth(data.user, data.token);
+      // Navigator will switch to Main automatically
+    } catch (err: any) {
+      const message = err.response?.data?.message || err.message || 'Login failed. Please try again.';
+      Alert.alert('Login failed', message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -30,6 +45,7 @@ export default function LoginScreen({ navigation }: any) {
           mode="outlined"
           keyboardType="email-address"
           autoCapitalize="none"
+          autoComplete="email"
           style={styles.input}
         />
 
@@ -39,6 +55,7 @@ export default function LoginScreen({ navigation }: any) {
           onChangeText={setPassword}
           mode="outlined"
           secureTextEntry
+          autoComplete="password"
           style={styles.input}
         />
 
@@ -46,6 +63,7 @@ export default function LoginScreen({ navigation }: any) {
           mode="contained"
           onPress={handleLogin}
           loading={loading}
+          disabled={loading}
           style={styles.button}
         >
           Login
@@ -55,8 +73,9 @@ export default function LoginScreen({ navigation }: any) {
           mode="text"
           onPress={() => navigation.navigate('Signup')}
           style={styles.linkButton}
+          disabled={loading}
         >
-          Don't have an account? Sign up
+          Don&apos;t have an account? Sign up
         </Button>
       </View>
     </KeyboardAvoidingView>

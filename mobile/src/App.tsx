@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -6,10 +6,20 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Provider as PaperProvider } from 'react-native-paper';
 import AppNavigator from './navigation/AppNavigator';
 import { theme } from './config/theme';
+import { setUnauthorizedCallback } from './api/client';
+import { useAuthStore } from './store/slices/authSlice';
 
 const queryClient = new QueryClient();
 
 export default function App() {
+  const logout = useAuthStore((s) => s.logout);
+
+  useEffect(() => {
+    setUnauthorizedCallback(() => {
+      logout();
+    });
+  }, [logout]);
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>

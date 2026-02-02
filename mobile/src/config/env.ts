@@ -1,7 +1,15 @@
-export const API_BASE_URL = process.env.API_URL || 'http://localhost:5000/api/v1';
-export const SOCKET_URL = process.env.SOCKET_URL || 'http://localhost:5000';
-export const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY || '';
-export const APP_ENV = process.env.APP_ENV || 'development';
+// Expo injects EXPO_PUBLIC_* at build time; fallback for dev/local
+const getEnv = (key: string, fallback: string) => {
+  const val = (process.env as Record<string, string>)[key] ?? fallback;
+  return val;
+};
+
+export const API_BASE_URL =
+  getEnv('EXPO_PUBLIC_API_URL', getEnv('API_URL', 'https://api.murugohomes.com/api/v1'));
+export const SOCKET_URL =
+  getEnv('EXPO_PUBLIC_SOCKET_URL', getEnv('SOCKET_URL', 'https://api.murugohomes.com'));
+export const GOOGLE_MAPS_API_KEY = getEnv('EXPO_PUBLIC_GOOGLE_MAPS_API_KEY', getEnv('GOOGLE_MAPS_API_KEY', ''));
+export const APP_ENV = getEnv('APP_ENV', 'development');
 
 export const FIREBASE_CONFIG = {
   apiKey: process.env.FIREBASE_API_KEY,

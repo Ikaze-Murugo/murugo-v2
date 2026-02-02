@@ -1,3 +1,13 @@
+export interface PropertyMedia {
+  id: string;
+  propertyId: string;
+  url: string;
+  type: 'image' | 'video';
+  caption?: string;
+  order: number;
+  createdAt?: string;
+}
+
 export interface Property {
   id: string;
   title: string;
@@ -15,10 +25,10 @@ export interface Property {
   floorNumber?: number;
   yearBuilt?: number;
   availabilityDate?: string;
-  images: PropertyImage[];
+  media?: PropertyMedia[];
   status: PropertyStatus;
   listerId: string;
-  lister: User;
+  lister?: User;
   viewsCount: number;
   contactCount: number;
   shareCount: number;
@@ -59,13 +69,6 @@ export interface Location {
   longitude: number;
 }
 
-export interface PropertyImage {
-  id: string;
-  url: string;
-  thumbnailUrl?: string;
-  order: number;
-}
-
 export interface User {
   id: string;
   email: string;
@@ -77,12 +80,41 @@ export interface User {
 }
 
 export interface UserProfile {
-  id: string;
-  name: string;
+  id?: string;
+  name?: string;
   bio?: string;
   avatarUrl?: string;
   companyName?: string;
   licenseNumber?: string;
-  rating: number;
-  totalReviews: number;
+  rating?: number;
+  totalReviews?: number;
+}
+
+export interface PropertyFilters {
+  search?: string;
+  propertyType?: PropertyType;
+  transactionType?: TransactionType;
+  minPrice?: number;
+  maxPrice?: number;
+  bedrooms?: number;
+  bathrooms?: number;
+  sortBy?: 'price' | 'createdAt' | 'viewsCount';
+  sortOrder?: 'asc' | 'desc';
+  page?: number;
+  limit?: number;
+}
+
+export interface PaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface Favorite {
+  id: string;
+  userId: string;
+  propertyId: string;
+  property?: Property;
+  createdAt: string;
 }
