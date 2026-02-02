@@ -15,8 +15,9 @@ Quick reference for monitoring and operating the backend stack (Docker Compose, 
 5. [Database](#database)
 6. [Restart Services](#restart-services)
 7. [Update Application](#update-application)
-8. [Health & API](#health--api)
-9. [Troubleshooting One-Liners](#troubleshooting-one-liners)
+8. [Docker build failures (cache / snapshot)](#docker-build-failures-cache--snapshot)
+9. [Health & API](#health--api)
+10. [Troubleshooting One-Liners](#troubleshooting-one-liners)
 
 ---
 
@@ -125,6 +126,47 @@ sudo docker compose up -d
 
 ```bash
 sudo docker compose run --rm backend npm run migrate
+```
+
+---
+
+## Docker build failures (cache / snapshot)
+
+If `docker compose up -d --build` fails with an error like:
+
+```text
+failed to solve: failed to prepare extraction snapshot ... parent snapshot sha256:... does not exist: not found
+```
+
+Docker’s build cache has a broken or stale layer reference. Fix by clearing the build cache and rebuilding without cache:
+
+```bash
+cd ~/murugo-v2   # or your project path
+sudo docker compose down
+sudo docker builder prune -af
+sudo docker compose build --no-cache
+sudo docker compose up -d
+```
+
+- **`docker builder prune -af`** – removes all build cache.
+- **`--no-cache`** – forces a full rebuild so Docker doesn’t reuse the bad layer.
+
+If it still fails, try a stronger prune:
+
+```bash
+sudo docker compose down
+sudo docker builder prune -af
+sudo docker system prune -f
+sudo docker compose up -d --build
+```
+
+**Nuclear option** (removes all unused images and build cache; only run if you’re okay re-pulling base images):
+
+```bash
+sudo docker compose down
+sudo docker system prune -af
+sudo docker compose build --no-cache
+sudo docker compose up -d
 ```
 
 ---
