@@ -384,3 +384,5 @@ This roadmap does not include store accounts, store listings, or TestFlight; add
 | TestFlight | No | Yes (later) |
 
 The document at `docs/MOBILE_APP_ROADMAP.md` is the single place for this APK-first plan; update it as you complete phases or change scope.
+
+**See also:** [Mobile App Enhancement Roadmap](./MOBILE_APP_ENHANCEMENT_ROADMAP.md) — guest view, property card styling, image gallery, lister and admin features, filters, and polish (for when the baseline app is working).
