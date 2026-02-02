@@ -65,32 +65,34 @@ export default function HomePage() {
               </div>
             </div>
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4">
-              <a
-                href="#"
-                className="inline-flex items-center gap-2 h-11 px-4 rounded-lg border bg-background hover:bg-muted/50 transition-colors"
-                aria-label="Get it on Google Play"
-              >
-                <Image
-                  src={landingImages.appStores.google}
-                  alt="Get it on Google Play"
-                  width={140}
-                  height={42}
-                  className="h-9 w-auto object-contain"
-                />
-              </a>
-              <a
-                href="#"
-                className="inline-flex items-center gap-2 h-11 px-4 rounded-lg border bg-background hover:bg-muted/50 transition-colors"
-                aria-label="Download on the App Store"
-              >
-                <Image
-                  src={landingImages.appStores.apple}
-                  alt="Download on the App Store"
-                  width={140}
-                  height={42}
-                  className="h-9 w-auto object-contain"
-                />
-              </a>
+              <span className="relative inline-block">
+                <span className="inline-flex items-center gap-2 h-11 px-4 rounded-lg border bg-muted/50 cursor-not-allowed opacity-90">
+                  <Image
+                    src={landingImages.appStores.google}
+                    alt="Get it on Google Play"
+                    width={140}
+                    height={42}
+                    className="h-9 w-auto object-contain"
+                  />
+                </span>
+                <span className="absolute -top-1 -right-1 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-amber-500 text-white rounded shadow">
+                  Coming soon
+                </span>
+              </span>
+              <span className="relative inline-block">
+                <span className="inline-flex items-center gap-2 h-11 px-4 rounded-lg border bg-muted/50 cursor-not-allowed opacity-90">
+                  <Image
+                    src={landingImages.appStores.apple}
+                    alt="Download on the App Store"
+                    width={140}
+                    height={42}
+                    className="h-9 w-auto object-contain"
+                  />
+                </span>
+                <span className="absolute -top-1 -right-1 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-amber-500 text-white rounded shadow">
+                  Coming soon
+                </span>
+              </span>
             </div>
           </div>
           <div className="flex-1 w-full max-w-md lg:max-w-lg order-1 lg:order-2 flex justify-center">
@@ -118,7 +120,10 @@ export default function HomePage() {
         <div className="relative overflow-hidden">
           <div className="flex animate-marquee gap-12 md:gap-16 py-4">
             {[...landingImages.partners, ...landingImages.partners].map((src, i) => (
-              <div key={i} className="flex-shrink-0 w-24 h-12 md:w-32 md:h-14 relative grayscale opacity-70 hover:opacity-100 hover:grayscale-0 transition-all">
+              <div
+                key={i}
+                className="flex-shrink-0 w-24 h-12 md:w-32 md:h-14 relative grayscale opacity-70 hover:opacity-100 hover:grayscale-0 transition-all duration-300 hover:scale-105"
+              >
                 <Image src={src} alt={`Partner ${(i % 6) + 1}`} fill className="object-contain object-center" sizes="128px" />
               </div>
             ))}

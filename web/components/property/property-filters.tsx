@@ -14,38 +14,40 @@ interface PropertyFiltersProps {
 export function PropertyFilters({ filters, onFiltersChange }: PropertyFiltersProps) {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
+  const resetPage = (next: Filters) => ({ ...next, page: 1 });
+
   const handleSearchChange = (value: string) => {
-    onFiltersChange({ ...filters, search: value });
+    onFiltersChange(resetPage({ ...filters, search: value || undefined }));
   };
 
   const handlePropertyTypeChange = (type: PropertyType | "") => {
-    onFiltersChange({ ...filters, propertyType: type || undefined });
+    onFiltersChange(resetPage({ ...filters, propertyType: type || undefined }));
   };
 
   const handleTransactionTypeChange = (type: TransactionType | "") => {
-    onFiltersChange({ ...filters, transactionType: type || undefined });
+    onFiltersChange(resetPage({ ...filters, transactionType: type || undefined }));
   };
 
   const handlePriceChange = (min: string, max: string) => {
-    onFiltersChange({
-      ...filters,
-      minPrice: min ? parseFloat(min) : undefined,
-      maxPrice: max ? parseFloat(max) : undefined,
-    });
+    onFiltersChange(
+      resetPage({
+        ...filters,
+        minPrice: min ? parseFloat(min) : undefined,
+        maxPrice: max ? parseFloat(max) : undefined,
+      })
+    );
   };
 
   const handleBedroomsChange = (value: string) => {
-    onFiltersChange({
-      ...filters,
-      bedrooms: value ? parseInt(value) : undefined,
-    });
+    onFiltersChange(
+      resetPage({ ...filters, bedrooms: value ? parseInt(value) : undefined })
+    );
   };
 
   const handleBathroomsChange = (value: string) => {
-    onFiltersChange({
-      ...filters,
-      bathrooms: value ? parseInt(value) : undefined,
-    });
+    onFiltersChange(
+      resetPage({ ...filters, bathrooms: value ? parseInt(value) : undefined })
+    );
   };
 
   const handleReset = () => {
@@ -173,7 +175,7 @@ export function PropertyFilters({ filters, onFiltersChange }: PropertyFiltersPro
             <label className="text-sm font-medium mb-2 block">Sort By</label>
             <select
               value={filters.sortBy || "createdAt"}
-              onChange={(e) => onFiltersChange({ ...filters, sortBy: e.target.value as any })}
+              onChange={(e) => onFiltersChange(resetPage({ ...filters, sortBy: e.target.value as any }))}
               className="w-full px-3 py-2 border rounded-md bg-background"
             >
               <option value="createdAt">Newest First</option>

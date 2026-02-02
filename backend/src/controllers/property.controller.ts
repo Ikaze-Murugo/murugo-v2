@@ -75,6 +75,7 @@ export const getAllProperties = async (req: AuthRequest, res: Response): Promise
       page = 1,
       limit = 20,
       type,
+      transactionType,
       minPrice,
       maxPrice,
       location,
@@ -94,6 +95,10 @@ export const getAllProperties = async (req: AuthRequest, res: Response): Promise
 
     if (type) {
       where.propertyType = type;
+    }
+
+    if (transactionType && typeof transactionType === 'string' && ['rent', 'sale', 'lease'].includes(transactionType)) {
+      where.transactionType = transactionType;
     }
 
     if (minPrice && maxPrice) {

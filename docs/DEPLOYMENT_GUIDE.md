@@ -3,17 +3,22 @@
 ## Table of Contents
 
 1. [Overview](#overview)
-2. [Free Hosting Options](#free-hosting-options)
-3. [Backend Deployment](#backend-deployment)
-4. [Web Frontend Deployment (Vercel)](#web-frontend-deployment-vercel)
-5. [Mobile App Deployment](#mobile-app-deployment)
-6. [Database Setup](#database-setup)
-7. [Environment Configuration](#environment-configuration)
-8. [Post-Deployment Checks](#post-deployment-checks)
+2. [Components and style guidelines](#components-and-style-guidelines)
+3. [Free Hosting Options](#free-hosting-options)
+4. [Backend Deployment](#backend-deployment)
+5. [Web Frontend Deployment (Vercel)](#web-frontend-deployment-vercel)
+6. [Mobile App Deployment](#mobile-app-deployment)
+7. [Database Setup](#database-setup)
+8. [Environment Configuration](#environment-configuration)
+9. [Post-Deployment Checks](#post-deployment-checks)
 
 ## Overview
 
 This guide provides step-by-step instructions for deploying the Rwanda Real Estate Platform using free or low-cost hosting services. The platform consists of a Node.js backend API and a React Native mobile application.
+
+### Components and style guidelines
+
+For UI components, design tokens, and style conventions used in the web app, see **[COMPONENTS_AND_STYLE_GUIDELINES.md](./COMPONENTS_AND_STYLE_GUIDELINES.md)**.
 
 ## Free Hosting Options
 

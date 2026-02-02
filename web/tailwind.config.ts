@@ -125,7 +125,7 @@ const config: Config = {
         "slide-in-from-bottom": "slide-in-from-bottom 0.3s ease-out",
         "slide-in-from-left": "slide-in-from-left 0.3s ease-out",
         "slide-in-from-right": "slide-in-from-right 0.3s ease-out",
-        marquee: "marquee 25s linear infinite",
+        marquee: "marquee 30s linear infinite",
       },
     },
   },

@@ -172,96 +172,107 @@ export default function PropertyDetailPage() {
               </div>
             </div>
 
-            {/* Property Details */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bg-muted/50 rounded-lg">
-              {property.bedrooms && (
-                <div className="flex items-center gap-2">
-                  <Bed className="h-5 w-5 text-primary" />
+            {/* Quick stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {property.bedrooms != null && (
+                <div className="flex items-center gap-3 p-4 rounded-xl border bg-card shadow-sm">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Bed className="h-5 w-5 text-primary" />
+                  </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Bedrooms</p>
-                    <p className="font-semibold">{property.bedrooms}</p>
+                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Bedrooms</p>
+                    <p className="text-lg font-bold">{property.bedrooms}</p>
                   </div>
                 </div>
               )}
-              {property.bathrooms && (
-                <div className="flex items-center gap-2">
-                  <Bath className="h-5 w-5 text-primary" />
+              {property.bathrooms != null && (
+                <div className="flex items-center gap-3 p-4 rounded-xl border bg-card shadow-sm">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Bath className="h-5 w-5 text-primary" />
+                  </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Bathrooms</p>
-                    <p className="font-semibold">{property.bathrooms}</p>
+                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Bathrooms</p>
+                    <p className="text-lg font-bold">{property.bathrooms}</p>
                   </div>
                 </div>
               )}
-              {property.sizeSqm && (
-                <div className="flex items-center gap-2">
-                  <Square className="h-5 w-5 text-primary" />
+              {property.sizeSqm != null && property.sizeSqm > 0 && (
+                <div className="flex items-center gap-3 p-4 rounded-xl border bg-card shadow-sm">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Square className="h-5 w-5 text-primary" />
+                  </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Size</p>
-                    <p className="font-semibold">{property.sizeSqm}m²</p>
+                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Size</p>
+                    <p className="text-lg font-bold">{property.sizeSqm} m²</p>
                   </div>
                 </div>
               )}
-              <div className="flex items-center gap-2">
-                <Eye className="h-5 w-5 text-primary" />
+              <div className="flex items-center gap-3 p-4 rounded-xl border bg-card shadow-sm">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <Eye className="h-5 w-5 text-primary" />
+                </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Views</p>
-                  <p className="font-semibold">{property.viewsCount || 0}</p>
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Views</p>
+                  <p className="text-lg font-bold">{property.viewsCount ?? 0}</p>
                 </div>
               </div>
             </div>
 
             {/* Description */}
-            <div>
-              <h2 className="text-2xl font-bold mb-4">Description</h2>
-              <p className="text-muted-foreground whitespace-pre-line">
+            <section className="rounded-2xl border bg-card p-6 md:p-8 shadow-sm">
+              <h2 className="text-lg font-semibold uppercase tracking-wider text-muted-foreground mb-3">Description</h2>
+              <p className="text-foreground/90 leading-relaxed whitespace-pre-line">
                 {property.description}
               </p>
-            </div>
+            </section>
 
             {/* Amenities */}
             {property.amenities && property.amenities.length > 0 && (
-              <div>
-                <h2 className="text-2xl font-bold mb-4">Amenities</h2>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <section className="rounded-2xl border bg-card p-6 md:p-8 shadow-sm">
+                <h2 className="text-lg font-semibold uppercase tracking-wider text-muted-foreground mb-4">Amenities</h2>
+                <div className="flex flex-wrap gap-2">
                   {property.amenities.map((amenity, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-green-600" />
-                      <span className="capitalize">{amenity}</span>
-                    </div>
+                    <span
+                      key={index}
+                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary font-medium text-sm capitalize"
+                    >
+                      <Check className="h-4 w-4 shrink-0" />
+                      {amenity}
+                    </span>
                   ))}
                 </div>
-              </div>
+              </section>
             )}
 
-            {/* Additional Details */}
-            <div>
-              <h2 className="text-2xl font-bold mb-4">Property Details</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex justify-between p-3 bg-muted/50 rounded">
-                  <span className="text-muted-foreground">Property Type</span>
+            {/* Property meta */}
+            <section className="rounded-2xl border bg-card p-6 md:p-8 shadow-sm">
+              <h2 className="text-lg font-semibold uppercase tracking-wider text-muted-foreground mb-4">Details</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="flex justify-between items-center py-3 px-4 rounded-lg bg-muted/50">
+                  <span className="text-sm text-muted-foreground">Property type</span>
                   <span className="font-semibold capitalize">{property.propertyType}</span>
                 </div>
-                <div className="flex justify-between p-3 bg-muted/50 rounded">
-                  <span className="text-muted-foreground">Transaction Type</span>
+                <div className="flex justify-between items-center py-3 px-4 rounded-lg bg-muted/50">
+                  <span className="text-sm text-muted-foreground">Transaction</span>
                   <span className="font-semibold capitalize">{property.transactionType}</span>
                 </div>
-                <div className="flex justify-between p-3 bg-muted/50 rounded">
-                  <span className="text-muted-foreground">Status</span>
+                <div className="flex justify-between items-center py-3 px-4 rounded-lg bg-muted/50">
+                  <span className="text-sm text-muted-foreground">Status</span>
                   <span className="font-semibold capitalize">{property.status}</span>
                 </div>
-                {property.yearBuilt && (
-                  <div className="flex justify-between p-3 bg-muted/50 rounded">
-                    <span className="text-muted-foreground">Year Built</span>
+                {property.yearBuilt != null && property.yearBuilt > 0 && (
+                  <div className="flex justify-between items-center py-3 px-4 rounded-lg bg-muted/50">
+                    <span className="text-sm text-muted-foreground">Year built</span>
                     <span className="font-semibold">{property.yearBuilt}</span>
                   </div>
                 )}
               </div>
-            </div>
+            </section>
 
             {/* Reviews */}
-            <div>
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                <MessageSquare className="h-6 w-6" />
+            <section className="rounded-2xl border bg-card p-6 md:p-8 shadow-sm">
+              <h2 className="text-lg font-semibold uppercase tracking-wider text-muted-foreground mb-4 flex items-center gap-2">
+                <MessageSquare className="h-5 w-5" />
                 Reviews {reviews.length > 0 && `(${reviews.length})`}
               </h2>
               {reviewsLoading ? (
@@ -337,12 +348,27 @@ export default function PropertyDetailPage() {
                   </div>
                 </div>
               )}
-            </div>
+            </section>
           </div>
 
           {/* Sidebar */}
           <div className="lg:col-span-1">
             <div className="sticky top-8 space-y-6">
+              {/* Lister link */}
+              {property.listerId && (
+                <div className="mb-4">
+                  <span className="text-sm text-muted-foreground">Listed by </span>
+                  <Link
+                    href={`/listers/${property.listerId}`}
+                    className="text-sm font-semibold text-primary hover:underline"
+                  >
+                    {property.lister?.profile?.name ||
+                      property.lister?.profile?.companyName ||
+                      "View lister"}
+                  </Link>
+                </div>
+              )}
+
               {/* Contact Card - only show contact info when authenticated */}
               <div className="p-6 border rounded-lg bg-background shadow-lg">
                 <h3 className="text-xl font-bold mb-4">Contact Property Owner</h3>

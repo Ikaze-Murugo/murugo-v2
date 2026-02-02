@@ -102,6 +102,26 @@ export const propertyApi = {
 };
 
 // ========================================
+// LISTERS (PUBLIC PROFILE)
+// ========================================
+
+export interface ListerPublic {
+  id: string;
+  role: string;
+  profileType?: string;
+  profile?: { name?: string; bio?: string; companyName?: string; avatarUrl?: string } | null;
+}
+
+export const listersApi = {
+  getById: async (id: string) => {
+    const response = await apiClient.get<{
+      data: { lister: ListerPublic; properties: Property[] };
+    }>(`/listers/${id}`);
+    return response.data.data;
+  },
+};
+
+// ========================================
 // USER ENDPOINTS
 // ========================================
 

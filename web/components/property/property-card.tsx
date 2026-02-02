@@ -149,6 +149,20 @@ export function PropertyCard({ property, onFavoriteChange }: PropertyCardProps) 
               </div>
             )}
           </div>
+
+          {/* Lister name – clickable to public profile */}
+          {property.listerId && (
+            <div className="mt-2 pt-2 border-t border-border/50">
+              <span className="text-xs text-muted-foreground">Listed by </span>
+              <Link
+                href={`/listers/${property.listerId}`}
+                onClick={(e) => e.stopPropagation()}
+                className="text-xs font-medium text-primary hover:underline"
+              >
+                {property.lister?.profile?.name || property.lister?.profile?.companyName || "Lister"}
+              </Link>
+            </div>
+          )}
         </CardContent>
 
         <CardFooter className="p-4 pt-0">
