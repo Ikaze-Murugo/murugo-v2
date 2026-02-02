@@ -354,18 +354,23 @@ export default function PropertyDetailPage() {
           {/* Sidebar */}
           <div className="lg:col-span-1">
             <div className="sticky top-8 space-y-6">
-              {/* Lister link */}
+              {/* Lister link – visible for all; leads to modern lister page with public info & properties */}
               {property.listerId && (
-                <div className="mb-4">
-                  <span className="text-sm text-muted-foreground">Listed by </span>
+                <div className="mb-4 p-4 rounded-xl border bg-card">
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">
+                    Listed by
+                  </p>
                   <Link
                     href={`/listers/${property.listerId}`}
-                    className="text-sm font-semibold text-primary hover:underline"
+                    className="text-base font-semibold text-primary hover:underline"
                   >
                     {property.lister?.profile?.name ||
                       property.lister?.profile?.companyName ||
-                      "View lister"}
+                      "View lister profile"}
                   </Link>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    View their public profile, lister type, and all listings.
+                  </p>
                 </div>
               )}
 
@@ -403,7 +408,7 @@ export default function PropertyDetailPage() {
               </div>
 
               {/* Map Placeholder */}
-              {property.location?.latitude && property.location?.longitude && (
+              {property.location?.latitude != null && property.location?.longitude != null && (
                 <div className="p-6 border rounded-lg bg-background">
                   <h3 className="text-xl font-bold mb-4">Location</h3>
                   <div className="h-64 bg-muted rounded-lg flex items-center justify-center">

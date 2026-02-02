@@ -6,7 +6,7 @@ import { PropertyMedia, MediaType } from '../models/PropertyMedia.model';
 import { PropertyView } from '../models/PropertyView.model';
 import { User } from '../models/User.model';
 import { successResponse, errorResponse } from '../utils/response.util';
-import { Like, Between, In, MoreThanOrEqual, LessThanOrEqual } from 'typeorm';
+import { Like, Between, In, MoreThanOrEqual, LessThanOrEqual, Brackets } from 'typeorm';
 
 export const createProperty = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
@@ -78,7 +78,7 @@ export const getAllProperties = async (req: AuthRequest, res: Response): Promise
       transactionType,
       minPrice,
       maxPrice,
-      location,
+      location: locationFilter,
       bedrooms,
       bathrooms,
       amenities,
@@ -89,50 +89,68 @@ export const getAllProperties = async (req: AuthRequest, res: Response): Promise
 
     const propertyRepository = AppDataSource.getRepository(Property);
     const skip = (Number(page) - 1) * Number(limit);
+    const order = (sortBy as string) || 'createdAt';
+    const orderDir = ((sortOrder as string) || 'DESC').toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
-    // Build query conditions
-    const where: any = { status: PropertyStatus.AVAILABLE };
+    const qb = propertyRepository
+      .createQueryBuilder('property')
+      .leftJoinAndSelect('property.lister', 'lister')
+      .leftJoinAndSelect('lister.profile', 'profile')
+      .leftJoinAndSelect('property.media', 'media')
+      .where('property.status = :status', { status: PropertyStatus.AVAILABLE });
 
     if (type) {
-      where.propertyType = type;
+      qb.andWhere('property.propertyType = :type', { type });
     }
 
     if (transactionType && typeof transactionType === 'string' && ['rent', 'sale', 'lease'].includes(transactionType)) {
-      where.transactionType = transactionType;
+      qb.andWhere('property.transactionType = :transactionType', { transactionType });
     }
 
-    if (minPrice && maxPrice) {
-      where.price = Between(Number(minPrice), Number(maxPrice));
-    } else if (minPrice) {
-      where.price = MoreThanOrEqual(Number(minPrice));
-    } else if (maxPrice) {
-      where.price = LessThanOrEqual(Number(maxPrice));
+    if (minPrice != null && minPrice !== '') {
+      qb.andWhere('property.price >= :minPrice', { minPrice: Number(minPrice) });
+    }
+    if (maxPrice != null && maxPrice !== '') {
+      qb.andWhere('property.price <= :maxPrice', { maxPrice: Number(maxPrice) });
     }
 
-    if (location) {
-      where.location = Like(`%${location}%`);
+    if (locationFilter && typeof locationFilter === 'string' && locationFilter.trim()) {
+      const locTerm = `%${locationFilter.trim()}%`;
+      qb.andWhere(
+        new Brackets((sub) => {
+          sub
+            .where("property.location->>'district' ILIKE :locTerm", { locTerm })
+            .orWhere("property.location->>'sector' ILIKE :locTerm", { locTerm })
+            .orWhere("property.location->>'cell' ILIKE :locTerm", { locTerm })
+            .orWhere("property.location->>'address' ILIKE :locTerm", { locTerm });
+        })
+      );
     }
 
-    if (bedrooms) {
-      where.bedrooms = Number(bedrooms);
+    if (bedrooms != null && bedrooms !== '') {
+      qb.andWhere('property.bedrooms >= :bedrooms', { bedrooms: Number(bedrooms) });
+    }
+    if (bathrooms != null && bathrooms !== '') {
+      qb.andWhere('property.bathrooms >= :bathrooms', { bathrooms: Number(bathrooms) });
     }
 
-    if (bathrooms) {
-      where.bathrooms = Number(bathrooms);
+    if (search && typeof search === 'string' && search.trim()) {
+      const searchTerm = `%${search.trim()}%`;
+      qb.andWhere(
+        new Brackets((sub) => {
+          sub
+            .where('property.title ILIKE :searchTerm', { searchTerm })
+            .orWhere("property.location->>'district' ILIKE :searchTerm", { searchTerm })
+            .orWhere("property.location->>'sector' ILIKE :searchTerm", { searchTerm })
+            .orWhere("property.location->>'cell' ILIKE :searchTerm", { searchTerm })
+            .orWhere("property.location->>'address' ILIKE :searchTerm", { searchTerm });
+        })
+      );
     }
 
-    if (search) {
-      where.title = Like(`%${search}%`);
-    }
+    qb.orderBy(`property.${order}`, orderDir).skip(skip).take(Number(limit));
 
-    // Get properties with pagination
-    const [properties, total] = await propertyRepository.findAndCount({
-      where,
-      relations: ['lister', 'lister.profile', 'media'],
-      order: { [sortBy as string]: sortOrder as 'ASC' | 'DESC' },
-      skip,
-      take: Number(limit),
-    });
+    const [properties, total] = await qb.getManyAndCount();
 
     // Remove sensitive data from lister
     const sanitizedProperties = properties.map((property) => ({

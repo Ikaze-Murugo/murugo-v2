@@ -6,9 +6,32 @@ import { propertyApi } from "@/lib/api/endpoints";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, Search, ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
 import { useState, useEffect } from "react";
 import { landingImages } from "@/lib/data/landing-images";
+
+const FAQ_ITEMS = [
+  {
+    q: "How do I search for a property?",
+    a: "Use the search bar on the home page or go to All properties. You can filter by type (house, apartment, etc.), transaction (rent/sale/lease), location, price, and number of bedrooms or bathrooms.",
+  },
+  {
+    q: "Can I list my property without an account?",
+    a: "You need to sign up as a lister to create listings. Register with \"I want to list properties\" and then add your property from the dashboard.",
+  },
+  {
+    q: "How do I contact a property owner or lister?",
+    a: "Sign in or create an account. On any property page you can see contact options and message or call the lister directly.",
+  },
+  {
+    q: "What areas do you cover?",
+    a: "We list properties across Rwanda, including Kigali and other districts. Use the location filter or search by district or sector to find properties in your preferred area.",
+  },
+  {
+    q: "Is the mobile app available?",
+    a: "Our mobile app is coming soon. You can use the website on your phone in the meantime—it's fully responsive.",
+  },
+];
 
 const SERVICES = [
   { id: "renting", ...landingImages.services.renting },
@@ -18,6 +41,7 @@ const SERVICES = [
 
 export default function HomePage() {
   const [serviceIndex, setServiceIndex] = useState(0);
+  const [faqOpen, setFaqOpen] = useState<number | null>(0);
 
   const { data: featuredData } = useQuery({
     queryKey: ["properties", "featured"],
@@ -260,6 +284,50 @@ export default function HomePage() {
               No listings yet. Check back soon.
             </div>
           )}
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="py-16 md:py-20 px-4 bg-muted/20">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-2 tracking-tight">
+            Frequently asked questions
+          </h2>
+          <p className="text-muted-foreground text-center mb-10">
+            Quick answers to common questions about Murugo Homes.
+          </p>
+          <div className="space-y-2">
+            {FAQ_ITEMS.map((item, i) => (
+              <div
+                key={i}
+                className="rounded-xl border bg-card shadow-sm overflow-hidden"
+              >
+                <button
+                  type="button"
+                  onClick={() => setFaqOpen(faqOpen === i ? null : i)}
+                  className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left font-medium hover:bg-muted/50 transition-colors"
+                >
+                  <span className="text-foreground">{item.q}</span>
+                  <ChevronDown
+                    className={`h-5 w-5 shrink-0 text-muted-foreground transition-transform duration-200 ${
+                      faqOpen === i ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+                <div
+                  className={`grid transition-[grid-template-rows] duration-200 ${
+                    faqOpen === i ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+                  }`}
+                >
+                  <div className="overflow-hidden border-t">
+                    <p className="px-5 pb-4 pt-4 text-muted-foreground text-sm leading-relaxed">
+                      {item.a}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

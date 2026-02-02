@@ -354,6 +354,17 @@ export default function MyListingsPage() {
                               : "—"}
                           </span>
                         </div>
+                        {user?.id && (
+                          <p className="text-xs text-muted-foreground">
+                            Listed by you ·{" "}
+                            <Link
+                              href={`/listers/${user.id}`}
+                              className="text-primary font-medium hover:underline"
+                            >
+                              View your public profile
+                            </Link>
+                          </p>
+                        )}
                       </div>
                       <div className="flex-shrink-0">
                         <span

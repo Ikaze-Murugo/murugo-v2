@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, Building2, User, Briefcase } from "lucide-react";
+import { ArrowLeft, Building2, User } from "lucide-react";
 import { ProfileType } from "@/lib/types";
 
 const BADGE_LABELS: Record<string, string> = {
