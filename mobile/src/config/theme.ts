@@ -1,42 +1,21 @@
-import { DefaultTheme } from 'react-native-paper';
+import { MD3LightTheme } from 'react-native-paper';
 
+// Use MD3 theme and only override colors/roundness.
+// Do not override fonts: MD3 needs the full typescale (labelLarge, bodyMedium, etc.).
 export const theme = {
-  ...DefaultTheme,
+  ...MD3LightTheme,
   colors: {
-    ...DefaultTheme.colors,
+    ...MD3LightTheme.colors,
     primary: '#2563EB',
     secondary: '#10B981',
-    accent: '#F59E0B',
+    tertiary: '#F59E0B',
     background: '#F9FAFB',
     surface: '#FFFFFF',
-    text: '#1F2937',
     error: '#EF4444',
-    success: '#10B981',
-    warning: '#F59E0B',
-    info: '#3B82F6',
-    disabled: '#9CA3AF',
-    placeholder: '#6B7280',
-    backdrop: 'rgba(0, 0, 0, 0.5)',
+    outline: '#9CA3AF',
+    placeholder: '#6B7280', // used by LoginScreen, SignupScreen, PropertyCard, etc.
   },
   roundness: 8,
-  fonts: {
-    regular: {
-      fontFamily: 'System',
-      fontWeight: '400' as const,
-    },
-    medium: {
-      fontFamily: 'System',
-      fontWeight: '500' as const,
-    },
-    light: {
-      fontFamily: 'System',
-      fontWeight: '300' as const,
-    },
-    thin: {
-      fontFamily: 'System',
-      fontWeight: '100' as const,
-    },
-  },
 };
 
 export const spacing = {
