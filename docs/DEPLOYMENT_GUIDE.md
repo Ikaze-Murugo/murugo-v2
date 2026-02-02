@@ -458,6 +458,8 @@ When you add features like **saving uploaded image URLs to the property** (creat
 
 ## Mobile App Deployment
 
+**APK-first roadmap:** For a full plan from current state to a distributable Android APK (no App Store or Play Store yet), see **[MOBILE_APP_ROADMAP.md](./MOBILE_APP_ROADMAP.md)**.
+
 ### Step 1: Configure Environment
 
 Update `mobile/.env`:
