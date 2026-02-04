@@ -7,9 +7,6 @@ import { useAuth } from "@/lib/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import { CheckCircle2, XCircle, Users, Home, Eye } from "lucide-react";
 import { toast } from "@/lib/hooks/use-toast";
 
@@ -84,9 +81,9 @@ export default function AdminPage() {
     if (statsLoading || !stats) {
       return (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Skeleton className="h-24 w-full" />
-          <Skeleton className="h-24 w-full" />
-          <Skeleton className="h-24 w-full" />
+          <div className="h-24 w-full rounded-md bg-muted animate-pulse" />
+          <div className="h-24 w-full rounded-md bg-muted animate-pulse" />
+          <div className="h-24 w-full rounded-md bg-muted animate-pulse" />
         </div>
       );
     }
@@ -134,8 +131,8 @@ export default function AdminPage() {
     if (pendingLoading) {
       return (
         <div className="space-y-4">
-          <Skeleton className="h-20 w-full" />
-          <Skeleton className="h-20 w-full" />
+          <div className="h-20 w-full rounded-md bg-muted animate-pulse" />
+          <div className="h-20 w-full rounded-md bg-muted animate-pulse" />
         </div>
       );
     }
@@ -166,12 +163,12 @@ export default function AdminPage() {
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <h3 className="font-semibold">{property.title}</h3>
-                  <Badge variant="outline" className="capitalize">
+                  <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs capitalize">
                     {property.propertyType}
-                  </Badge>
-                  <Badge variant="outline" className="capitalize">
+                  </span>
+                  <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs capitalize">
                     {property.transactionType}
-                  </Badge>
+                  </span>
                 </div>
                 <p className="text-sm text-muted-foreground line-clamp-2">
                   {property.description}
@@ -229,9 +226,9 @@ export default function AdminPage() {
     if (usersLoading || !usersData) {
       return (
         <div className="space-y-4">
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
+          <div className="h-10 w-full rounded-md bg-muted animate-pulse" />
+          <div className="h-10 w-full rounded-md bg-muted animate-pulse" />
+          <div className="h-10 w-full rounded-md bg-muted animate-pulse" />
         </div>
       );
     }
@@ -256,13 +253,13 @@ export default function AdminPage() {
                   <p className="font-medium">
                     {u.profile?.name || u.profile?.companyName || u.email}
                   </p>
-                  <Badge variant="outline" className="capitalize">
+                  <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs capitalize">
                     {u.role}
-                  </Badge>
+                  </span>
                   {u.profileType && (
-                    <Badge variant="secondary" className="capitalize">
+                    <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs capitalize">
                       {u.profileType}
-                    </Badge>
+                    </span>
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -294,22 +291,49 @@ export default function AdminPage() {
 
         {renderStats()}
 
-        <Tabs defaultValue="pending" className="mt-6">
-          <TabsList className="w-full md:w-auto">
-            <TabsTrigger value="pending" className="flex-1 md:flex-none">
+        <div className="mt-6 space-y-6">
+          <div className="flex flex-wrap gap-2 border-b pb-2">
+            <button
+              type="button"
+              className="px-3 py-1 text-sm font-medium border-b-2 border-primary text-primary"
+            >
               Pending approvals
-            </TabsTrigger>
-            <TabsTrigger value="users" className="flex-1 md:flex-none">
+            </button>
+            <button
+              type="button"
+              className="px-3 py-1 text-sm font-medium text-muted-foreground"
+              onClick={() => {
+                const usersSection = document.getElementById("admin-users-section");
+                if (usersSection) {
+                  usersSection.scrollIntoView({ behavior: "smooth" });
+                }
+              }}
+            >
               Manage users
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="pending" className="mt-4">
+            </button>
+          </div>
+
+          <section aria-labelledby="pending-approvals-heading">
+            <h2 id="pending-approvals-heading" className="sr-only">
+              Pending approvals
+            </h2>
             {renderPending()}
-          </TabsContent>
-          <TabsContent value="users" className="mt-4">
+          </section>
+
+          <section
+            id="admin-users-section"
+            aria-labelledby="manage-users-heading"
+            className="pt-4 border-t"
+          >
+            <h2
+              id="manage-users-heading"
+              className="text-lg font-semibold mb-3"
+            >
+              Manage users
+            </h2>
             {renderUsers()}
-          </TabsContent>
-        </Tabs>
+          </section>
+        </div>
       </div>
     </div>
   );
