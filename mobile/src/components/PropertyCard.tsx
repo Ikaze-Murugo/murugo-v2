@@ -1,25 +1,66 @@
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import { Card, Text, useTheme } from 'react-native-paper';
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  Platform,
+} from 'react-native';
+import { Card, Text, useTheme, Avatar } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
-import type { Property } from '../types/property.types';
+import type { Property, PropertyStatus } from '../types/property.types';
 
 interface PropertyCardProps {
   property: Property;
   onPress: () => void;
   isFavorite?: boolean;
   onFavoritePress?: () => void;
+  /** When true and user is logged in, show lister avatar + name below meta */
+  showLister?: boolean;
+  /** When true (e.g. My Listings), show status chip on card */
+  showStatus?: boolean;
 }
 
-export function PropertyCard({ property, onPress, isFavorite, onFavoritePress }: PropertyCardProps) {
+const STATUS_LABEL: Record<PropertyStatus, string> = {
+  available: 'Available',
+  pending: 'Pending',
+  rented: 'Rented',
+  sold: 'Sold',
+};
+
+export function PropertyCard({
+  property,
+  onPress,
+  isFavorite,
+  onFavoritePress,
+  showLister = false,
+  showStatus = false,
+}: PropertyCardProps) {
   const { colors } = useTheme();
   const imageUrl = property.media?.[0]?.url;
   const locationStr = property.location
     ? [property.location.sector, property.location.district].filter(Boolean).join(', ') || '—'
     : '—';
 
+  const lister = property.lister;
+  const listerName =
+    lister?.profile?.companyName || lister?.profile?.name || lister?.email || null;
+  const listerInitials = listerName
+    ? listerName
+        .split(/\s+/)
+        .map((s) => s[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2)
+    : '?';
+
   return (
-    <Card style={styles.card} onPress={onPress}>
+    <Card
+      style={styles.card}
+      onPress={onPress}
+      elevation={2}
+      theme={{ roundness: 12 }}
+    >
       <TouchableOpacity activeOpacity={1} onPress={onPress}>
         <View style={styles.imageWrap}>
           {imageUrl ? (
@@ -29,7 +70,7 @@ export function PropertyCard({ property, onPress, isFavorite, onFavoritePress }:
               <Ionicons name="home-outline" size={40} color={colors.placeholder} />
             </View>
           )}
-          {onFavoritePress && (
+          {onFavoritePress != null && (
             <TouchableOpacity
               style={styles.favButton}
               onPress={onFavoritePress}
@@ -45,6 +86,11 @@ export function PropertyCard({ property, onPress, isFavorite, onFavoritePress }:
           {property.isFeatured && (
             <View style={styles.featuredBadge}>
               <Text style={styles.featuredText}>Featured</Text>
+            </View>
+          )}
+          {showStatus && (
+            <View style={[styles.statusBadge, { backgroundColor: statusColor(property.status) }]}>
+              <Text style={styles.statusText}>{STATUS_LABEL[property.status]}</Text>
             </View>
           )}
         </View>
@@ -66,7 +112,9 @@ export function PropertyCard({ property, onPress, isFavorite, onFavoritePress }:
               {locationStr}
             </Text>
           </View>
-          {(property.bedrooms != null || property.bathrooms != null || property.sizeSqm != null) && (
+          {(property.bedrooms != null ||
+            property.bathrooms != null ||
+            (property.sizeSqm != null && property.sizeSqm > 0)) && (
             <View style={styles.metaRow}>
               {property.bedrooms != null && (
                 <Text variant="bodySmall" style={styles.meta}>
@@ -85,10 +133,39 @@ export function PropertyCard({ property, onPress, isFavorite, onFavoritePress }:
               )}
             </View>
           )}
+          {showLister && lister && listerName && (
+            <View style={styles.listerRow}>
+              {lister.profile?.avatarUrl ? (
+                <Image
+                  source={{ uri: lister.profile.avatarUrl }}
+                  style={styles.listerAvatar}
+                />
+              ) : (
+                <Avatar.Text size={28} label={listerInitials} style={styles.listerAvatarWrap} />
+              )}
+              <Text variant="bodySmall" numberOfLines={1} style={styles.listerName}>
+                {listerName}
+              </Text>
+            </View>
+          )}
         </Card.Content>
       </TouchableOpacity>
     </Card>
   );
+}
+
+function statusColor(status: PropertyStatus): string {
+  switch (status) {
+    case 'available':
+      return 'rgba(16, 185, 129, 0.9)';
+    case 'pending':
+      return 'rgba(245, 158, 11, 0.9)';
+    case 'rented':
+    case 'sold':
+      return 'rgba(107, 114, 128, 0.9)';
+    default:
+      return 'rgba(107, 114, 128, 0.9)';
+  }
 }
 
 const styles = StyleSheet.create({
@@ -96,17 +173,19 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginBottom: 16,
     overflow: 'hidden',
+    borderRadius: 12,
+    ...(Platform.OS === 'android' ? { elevation: 2 } : {}),
   },
   imageWrap: {
     position: 'relative',
-    height: 180,
+    height: 200,
+    backgroundColor: '#E5E7EB',
   },
   image: {
     width: '100%',
     height: '100%',
   },
   imagePlaceholder: {
-    backgroundColor: '#E5E7EB',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -114,7 +193,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 12,
     right: 12,
-    padding: 4,
+    padding: 6,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.3)',
   },
   featuredBadge: {
     position: 'absolute',
@@ -123,23 +204,37 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(37, 99, 235, 0.9)',
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 4,
+    borderRadius: 6,
   },
   featuredText: {
     color: '#fff',
     fontSize: 12,
     fontWeight: '600',
   },
+  statusBadge: {
+    position: 'absolute',
+    bottom: 12,
+    right: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  statusText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
   content: {
-    paddingTop: 12,
+    paddingTop: 14,
+    paddingBottom: 14,
   },
   title: {
-    marginBottom: 4,
+    marginBottom: 6,
   },
   priceRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   price: {
     color: '#2563EB',
@@ -153,7 +248,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    marginBottom: 4,
+    marginBottom: 6,
   },
   location: {
     flex: 1,
@@ -164,6 +259,27 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   meta: {
+    color: '#6B7280',
+  },
+  listerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    gap: 8,
+  },
+  listerAvatar: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+  },
+  listerAvatarWrap: {
+    backgroundColor: '#9CA3AF',
+  },
+  listerName: {
+    flex: 1,
     color: '#6B7280',
   },
 });

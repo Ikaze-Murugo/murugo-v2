@@ -1,15 +1,28 @@
 import React from 'react';
 import { View, StyleSheet, FlatList } from 'react-native';
 import { Text, Title, ActivityIndicator, Button } from 'react-native-paper';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { favoriteApi } from '../../api/favorites';
 import { PropertyCard } from '../../components/PropertyCard';
+import { useAuthStore } from '../../store/slices/authSlice';
 import type { Property } from '../../types/property.types';
 
 export default function FavoritesScreen({ route, navigation }: any) {
+  const user = useAuthStore((s) => s.user);
+  const isGuest = !user;
+  const queryClient = useQueryClient();
+
   const { data: favorites, isLoading, error } = useQuery({
     queryKey: ['favorites'],
     queryFn: () => favoriteApi.getAll(),
+    enabled: !isGuest,
+  });
+
+  const removeFavorite = useMutation({
+    mutationFn: (propertyId: string) => favoriteApi.remove(propertyId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['favorites'] });
+    },
   });
 
   const properties = (favorites ?? []).map((f) => f.property).filter(Boolean) as Property[];
@@ -38,6 +51,31 @@ export default function FavoritesScreen({ route, navigation }: any) {
     );
   }
 
+  if (isGuest) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Button mode="text" onPress={() => navigation.goBack()}>
+            Back
+          </Button>
+          <Title style={styles.title}>My Favorites</Title>
+        </View>
+        <View style={styles.empty}>
+          <Text variant="bodyLarge" style={styles.emptyText}>
+            Sign in to save favorites. Your saved properties will appear here.
+          </Text>
+          <Button
+            mode="contained"
+            onPress={() => stackNav?.navigate('Login')}
+            style={styles.signInBtn}
+          >
+            Sign in
+          </Button>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -57,7 +95,13 @@ export default function FavoritesScreen({ route, navigation }: any) {
           data={properties}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <PropertyCard property={item} onPress={() => handlePropertyPress(item.id)} />
+            <PropertyCard
+              property={item}
+              onPress={() => handlePropertyPress(item.id)}
+              showLister={!!user}
+              isFavorite
+              onFavoritePress={() => removeFavorite.mutate(item.id)}
+            />
           )}
           contentContainerStyle={styles.listContent}
         />
@@ -75,4 +119,5 @@ const styles = StyleSheet.create({
   listContent: { paddingBottom: 24 },
   empty: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
   emptyText: { color: '#6B7280', textAlign: 'center' },
+  signInBtn: { marginTop: 16 },
 });

@@ -1,396 +1,317 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { adminApi } from "@/lib/api/endpoints";
+import { PropertyStatus } from "@/lib/types";
 import { useAuth } from "@/lib/hooks/use-auth";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
-import { adminApi, type AdminUser } from "@/lib/api/endpoints";
-import { Shield, Building2, Users, BarChart3, CheckCircle, Star, Search, UserCog } from "lucide-react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { CheckCircle2, XCircle, Users, Home, Eye } from "lucide-react";
+import { toast } from "@/lib/hooks/use-toast";
 
-const TABS = [
-  { id: "overview", label: "Overview", href: "/admin" },
-  { id: "approvals", label: "Approve properties", href: "/admin?tab=approvals" },
-  { id: "featured", label: "Feature properties", href: "/admin?tab=featured" },
-  { id: "users", label: "Manage users", href: "/admin?tab=users" },
-] as const;
-
-const ROLE_OPTIONS = [
-  { value: "", label: "All roles" },
-  { value: "seeker", label: "Seeker" },
-  { value: "lister", label: "Lister" },
-  { value: "admin", label: "Admin" },
-];
-
-function AdminPageContent() {
-  const { user, isAuthenticated } = useAuth();
+export default function AdminPage() {
+  const { user } = useAuth();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const tab = searchParams.get("tab") || "overview";
+  const queryClient = useQueryClient();
 
-  const [userSearch, setUserSearch] = useState("");
-  const [userRoleFilter, setUserRoleFilter] = useState("");
-  const [userPage, setUserPage] = useState(1);
-  const [searchDebounce, setSearchDebounce] = useState("");
-
-  const { data: stats, isLoading: statsLoading } = useQuery({
-    queryKey: ["admin-stats"],
-    queryFn: () => adminApi.getStats(),
-    enabled: isAuthenticated && user?.role === "admin",
-  });
-
-  const { data: usersData, isLoading: usersLoading } = useQuery({
-    queryKey: ["admin-users", userRoleFilter, searchDebounce, userPage],
-    queryFn: () =>
-      adminApi.getUsers({
-        role: userRoleFilter || undefined,
-        search: searchDebounce || undefined,
-        page: userPage,
-        limit: 15,
-      }),
-    enabled: isAuthenticated && user?.role === "admin" && tab === "users",
-  });
-
-  useEffect(() => {
-    const t = setTimeout(() => setSearchDebounce(userSearch.trim()), 400);
-    return () => clearTimeout(t);
-  }, [userSearch]);
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.replace("/login");
-      return;
+  if (user && user.role !== "admin") {
+    // Non-admins are redirected away from this page
+    if (typeof window !== "undefined") {
+      router.replace("/dashboard");
     }
-    if (user?.role !== "admin") {
-      router.replace("/");
-      return;
-    }
-  }, [isAuthenticated, user?.role, router]);
-
-  if (!isAuthenticated || user?.role !== "admin") {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent" />
+        <div className="text-muted-foreground">Redirecting…</div>
       </div>
     );
   }
 
-  const totalProperties = stats?.totalProperties ?? 0;
-  const totalUsers = stats?.totalUsers ?? 0;
-  const totalViews = stats?.totalViews ?? 0;
-  const pendingApprovals = stats?.pendingApprovals ?? 0;
-  const users = usersData?.users ?? [];
-  const usersPagination = usersData?.pagination;
+  const { data: stats, isLoading: statsLoading } = useQuery({
+    queryKey: ["admin-stats"],
+    queryFn: () => adminApi.getStats(),
+    enabled: !!user && user.role === "admin",
+  });
+
+  const {
+    data: pendingData,
+    isLoading: pendingLoading,
+    error: pendingError,
+  } = useQuery({
+    queryKey: ["admin-pending-properties"],
+    queryFn: () => adminApi.getPendingProperties({ page: 1, limit: 50 }),
+    enabled: !!user && user.role === "admin",
+  });
+
+  const { data: usersData, isLoading: usersLoading } = useQuery({
+    queryKey: ["admin-users"],
+    queryFn: () => adminApi.getUsers({ limit: 50 }),
+    enabled: !!user && user.role === "admin",
+  });
+
+  const updateStatusMutation = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: PropertyStatus }) =>
+      adminApi.updatePropertyStatus(id, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-pending-properties"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
+      toast({
+        title: "Status updated",
+        description: "Property status has been updated.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update property status.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleApprove = (id: string) => {
+    updateStatusMutation.mutate({ id, status: PropertyStatus.AVAILABLE });
+  };
+
+  const handleReject = (id: string) => {
+    updateStatusMutation.mutate({ id, status: PropertyStatus.PENDING });
+  };
+
+  const renderStats = () => {
+    if (statsLoading || !stats) {
+      return (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-24 w-full" />
+        </div>
+      );
+    }
+
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Users</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalUsers}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Properties</CardTitle>
+            <Home className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalProperties}</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {stats.availableProperties} available
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Views</CardTitle>
+            <Eye className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalViews}</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {stats.pendingApprovals} pending approvals
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
+
+  const renderPending = () => {
+    if (pendingLoading) {
+      return (
+        <div className="space-y-4">
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-20 w-full" />
+        </div>
+      );
+    }
+
+    if (pendingError) {
+      return (
+        <div className="text-sm text-red-500">
+          Failed to load pending properties. Please try again later.
+        </div>
+      );
+    }
+
+    const properties = pendingData?.properties ?? [];
+
+    if (properties.length === 0) {
+      return (
+        <p className="text-sm text-muted-foreground">
+          No properties are currently awaiting approval.
+        </p>
+      );
+    }
+
+    return (
+      <div className="space-y-4">
+        {properties.map((property) => (
+          <Card key={property.id}>
+            <CardContent className="p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold">{property.title}</h3>
+                  <Badge variant="outline" className="capitalize">
+                    {property.propertyType}
+                  </Badge>
+                  <Badge variant="outline" className="capitalize">
+                    {property.transactionType}
+                  </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground line-clamp-2">
+                  {property.description}
+                </p>
+                {property.lister && (
+                  <p className="text-xs text-muted-foreground">
+                    Lister:{" "}
+                    <span className="font-medium">
+                      {property.lister.profile?.name ||
+                        property.lister.profile?.companyName ||
+                        property.lister.email}
+                    </span>
+                  </p>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-xs"
+                  onClick={() =>
+                    window.open(`/properties/${property.id}`, "_blank")
+                  }
+                >
+                  View
+                </Button>
+                <Button
+                  size="sm"
+                  className="gap-1 bg-emerald-600 hover:bg-emerald-600/90 text-white"
+                  onClick={() => handleApprove(property.id)}
+                  disabled={updateStatusMutation.isPending}
+                >
+                  <CheckCircle2 className="h-3 w-3" />
+                  Approve
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-1 text-red-600 border-red-200 hover:bg-red-50"
+                  onClick={() => handleReject(property.id)}
+                  disabled={updateStatusMutation.isPending}
+                >
+                  <XCircle className="h-3 w-3" />
+                  Keep Pending
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  };
+
+  const renderUsers = () => {
+    if (usersLoading || !usersData) {
+      return (
+        <div className="space-y-4">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+      );
+    }
+
+    const { users } = usersData;
+
+    if (users.length === 0) {
+      return (
+        <p className="text-sm text-muted-foreground">
+          No users found yet.
+        </p>
+      );
+    }
+
+    return (
+      <div className="space-y-2">
+        {users.map((u) => (
+          <Card key={u.id}>
+            <CardContent className="p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="font-medium">
+                    {u.profile?.name || u.profile?.companyName || u.email}
+                  </p>
+                  <Badge variant="outline" className="capitalize">
+                    {u.role}
+                  </Badge>
+                  {u.profileType && (
+                    <Badge variant="secondary" className="capitalize">
+                      {u.profileType}
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {u.email} · {u.phone}
+                </p>
+              </div>
+              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                <span>{u.propertiesCount ?? 0} properties</span>
+                <span>{u.isActive ? "Active" : "Inactive"}</span>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  };
 
   return (
-    <div className="min-h-screen p-6 md:p-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex items-center gap-3 mb-6">
-          <Shield className="h-10 w-10 text-primary" />
-          <div>
-            <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-            <p className="text-muted-foreground">Platform stats and user management</p>
-          </div>
+    <div className="min-h-screen py-6 md:py-10 px-4">
+      <div className="max-w-6xl mx-auto space-y-6">
+        <div>
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
+            Admin dashboard
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Overview of users, listings, and pending approvals.
+          </p>
         </div>
 
-        {/* Tabs */}
-        <div className="flex flex-wrap gap-2 mb-8 border-b pb-4">
-          {TABS.map((t) => (
-            <Link key={t.id} href={t.href}>
-              <Button
-                variant={tab === t.id ? "default" : "ghost"}
-                size="sm"
-                className={tab === t.id ? "bg-[#949DDB] hover:bg-[#949DDB]/90" : ""}
-              >
-                {t.id === "overview" && <Shield className="h-4 w-4 mr-1" />}
-                {t.id === "approvals" && <CheckCircle className="h-4 w-4 mr-1" />}
-                {t.id === "featured" && <Star className="h-4 w-4 mr-1" />}
-                {t.id === "users" && <UserCog className="h-4 w-4 mr-1" />}
-                {t.label}
-              </Button>
-            </Link>
-          ))}
-        </div>
+        {renderStats()}
 
-        {/* Overview tab */}
-        {tab === "overview" && (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Total properties</CardTitle>
-                  <Building2 className="h-10 w-10 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <p className="text-2xl font-bold">{statsLoading ? "—" : totalProperties}</p>
-                  <Link href="/properties" className="text-sm text-primary hover:underline mt-2 inline-block">
-                    View listings
-                  </Link>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Users</CardTitle>
-                  <Users className="h-10 w-10 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <p className="text-2xl font-bold">{statsLoading ? "—" : totalUsers}</p>
-                  <Link href="/admin?tab=users" className="text-sm text-primary hover:underline mt-2 inline-block">
-                    Manage users
-                  </Link>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Views / engagement</CardTitle>
-                  <BarChart3 className="h-10 w-10 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <p className="text-2xl font-bold">{statsLoading ? "—" : totalViews}</p>
-                  <p className="text-xs text-muted-foreground mt-1">Total property views</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Pending approvals</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-2xl font-bold">{statsLoading ? "—" : pendingApprovals}</p>
-                  <p className="text-xs text-muted-foreground mt-1">Properties with pending status</p>
-                </CardContent>
-              </Card>
-            </div>
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick actions</CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-wrap gap-3">
-                <Link href="/properties">
-                  <Button>Browse properties</Button>
-                </Link>
-                <Link href="/admin?tab=users">
-                  <Button variant="outline">Manage users</Button>
-                </Link>
-                <Link href="/dashboard">
-                  <Button variant="outline">My dashboard</Button>
-                </Link>
-              </CardContent>
-            </Card>
-          </>
-        )}
-
-        {/* Approvals tab - placeholder */}
-        {tab === "approvals" && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Approve properties</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Review and approve pending property listings. This workflow will be available in a future update.
-              </p>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">No approval workflow configured yet.</p>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Featured tab - placeholder */}
-        {tab === "featured" && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Feature properties</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Mark properties as featured to highlight them on the homepage and search results.
-              </p>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Featured properties management coming soon.</p>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Manage users tab */}
-        {tab === "users" && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Manage users</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                View and filter all users. Lister property counts are shown. Block/suspend and other actions can be added later.
-              </p>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search by email, name, phone..."
-                    value={userSearch}
-                    onChange={(e) => setUserSearch(e.target.value)}
-                    className="pl-9"
-                  />
-                </div>
-                <select
-                  value={userRoleFilter}
-                  onChange={(e) => {
-                    setUserRoleFilter(e.target.value);
-                    setUserPage(1);
-                  }}
-                  className="h-10 px-3 rounded-md border bg-background min-w-[140px]"
-                >
-                  {ROLE_OPTIONS.map((opt) => (
-                    <option key={opt.value || "all"} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {usersLoading ? (
-                <div className="py-12 flex flex-col items-center justify-center text-muted-foreground">
-                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-current border-r-transparent mb-4" />
-                  <p>Loading users...</p>
-                </div>
-              ) : users.length === 0 ? (
-                <div className="py-12 text-center text-muted-foreground">
-                  <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No users match your filters.</p>
-                  <Button
-                    variant="outline"
-                    className="mt-4"
-                    onClick={() => {
-                      setUserSearch("");
-                      setUserRoleFilter("");
-                      setUserPage(1);
-                    }}
-                  >
-                    Clear filters
-                  </Button>
-                </div>
-              ) : (
-                <>
-                  <div className="overflow-x-auto rounded-lg border">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b bg-muted/50">
-                          <th className="text-left p-3 font-medium">Name</th>
-                          <th className="text-left p-3 font-medium">Email</th>
-                          <th className="text-left p-3 font-medium hidden md:table-cell">Phone</th>
-                          <th className="text-left p-3 font-medium">Role</th>
-                          <th className="text-left p-3 font-medium">Properties</th>
-                          <th className="text-left p-3 font-medium">Joined</th>
-                          <th className="text-left p-3 font-medium">Status</th>
-                          <th className="text-left p-3 font-medium">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {users.map((u: AdminUser) => (
-                          <tr key={u.id} className="border-b last:border-0 hover:bg-muted/30">
-                            <td className="p-3">
-                              <span className="font-medium">
-                                {u.profile?.name || u.profile?.companyName || "—"}
-                              </span>
-                            </td>
-                            <td className="p-3">{u.email}</td>
-                            <td className="p-3 hidden md:table-cell">{u.phone || "—"}</td>
-                            <td className="p-3">
-                              <span className="capitalize">{u.role}</span>
-                            </td>
-                            <td className="p-3">
-                              {u.role === "lister" ? (
-                                <span className="font-medium">{u.propertiesCount ?? 0}</span>
-                              ) : (
-                                "—"
-                              )}
-                            </td>
-                            <td className="p-3 text-muted-foreground">
-                              {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : "—"}
-                            </td>
-                            <td className="p-3">
-                              <span
-                                className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                                  u.isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-                                }`}
-                              >
-                                {u.isActive ? "Active" : "Inactive"}
-                              </span>
-                            </td>
-                            <td className="p-3">
-                              <div className="flex gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  disabled
-                                  title="Coming soon"
-                                  className="text-muted-foreground"
-                                >
-                                  Block
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  disabled
-                                  title="Coming soon"
-                                  className="text-muted-foreground"
-                                >
-                                  Suspend
-                                </Button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {usersPagination && usersPagination.totalPages > 1 && (
-                    <div className="flex items-center justify-between pt-4">
-                      <p className="text-sm text-muted-foreground">
-                        Showing page {usersPagination.page} of {usersPagination.totalPages} (
-                        {usersPagination.total} total)
-                      </p>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={usersPagination.page <= 1}
-                          onClick={() => setUserPage((p) => Math.max(1, p - 1))}
-                        >
-                          Previous
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={usersPagination.page >= usersPagination.totalPages}
-                          onClick={() => setUserPage((p) => p + 1)}
-                        >
-                          Next
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-            </CardContent>
-          </Card>
-        )}
+        <Tabs defaultValue="pending" className="mt-6">
+          <TabsList className="w-full md:w-auto">
+            <TabsTrigger value="pending" className="flex-1 md:flex-none">
+              Pending approvals
+            </TabsTrigger>
+            <TabsTrigger value="users" className="flex-1 md:flex-none">
+              Manage users
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="pending" className="mt-4">
+            {renderPending()}
+          </TabsContent>
+          <TabsContent value="users" className="mt-4">
+            {renderUsers()}
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
 }
 
-export default function AdminPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent" />
-        </div>
-      }
-    >
-      <AdminPageContent />
-    </Suspense>
-  );
-}

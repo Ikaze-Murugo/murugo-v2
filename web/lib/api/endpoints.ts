@@ -12,6 +12,7 @@ import type {
   Review,
   UserPreference,
 } from "../types";
+import { PropertyStatus } from "../types";
 
 // ========================================
 // AUTH ENDPOINTS
@@ -308,6 +309,21 @@ export const adminApi = {
     const response = await apiClient.get<{
       data: { users: AdminUser[]; pagination: { total: number; page: number; limit: number; totalPages: number } };
     }>("/admin/users", { params });
+    return response.data.data;
+  },
+
+  getPendingProperties: async (params?: { page?: number; limit?: number }): Promise<{
+    properties: Property[];
+    pagination: { total: number; page: number; limit: number; totalPages: number };
+  }> => {
+    const response = await apiClient.get<{
+      data: { properties: Property[]; pagination: { total: number; page: number; limit: number; totalPages: number } };
+    }>("/admin/properties/pending", { params: params ?? {} });
+    return response.data.data;
+  },
+
+  updatePropertyStatus: async (id: string, status: PropertyStatus): Promise<Property> => {
+    const response = await apiClient.patch<{ data: Property }>(`/admin/properties/${id}/status`, { status });
     return response.data.data;
   },
 };

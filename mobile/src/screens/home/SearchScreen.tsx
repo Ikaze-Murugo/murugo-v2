@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, FlatList } from 'react-native';
 import { Searchbar, Text, ActivityIndicator, Menu, Button } from 'react-native-paper';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { propertyApi } from '../../api/properties';
+import { favoriteApi } from '../../api/favorites';
 import { PropertyCard } from '../../components/PropertyCard';
+import { useAuthStore } from '../../store/slices/authSlice';
 import type { Property, PropertyFilters, PropertyType, TransactionType } from '../../types/property.types';
 
 const PROPERTY_TYPES: { label: string; value: PropertyType | '' }[] = [
@@ -25,6 +27,8 @@ const TRANSACTION_TYPES: { label: string; value: TransactionType | '' }[] = [
 ];
 
 export default function SearchScreen({ navigation }: any) {
+  const user = useAuthStore((s) => s.user);
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [propertyType, setPropertyType] = useState<PropertyType | ''>('');
   const [transactionType, setTransactionType] = useState<TransactionType | ''>('');
@@ -32,6 +36,24 @@ export default function SearchScreen({ navigation }: any) {
   const [transactionMenuVisible, setTransactionMenuVisible] = useState(false);
   const [page, setPage] = useState(1);
   const limit = 12;
+
+  const { data: favorites = [] } = useQuery({
+    queryKey: ['favorites'],
+    queryFn: () => favoriteApi.getAll(),
+    enabled: !!user,
+  });
+  const favoriteIds = new Set(favorites.map((f) => f.property?.id).filter(Boolean));
+
+  const toggleFavorite = useMutation({
+    mutationFn: async ({ propertyId, isFav }: { propertyId: string; isFav: boolean }) => {
+      if (isFav) await favoriteApi.remove(propertyId);
+      else await favoriteApi.add(propertyId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['favorites'] });
+      queryClient.invalidateQueries({ queryKey: ['properties'] });
+    },
+  });
 
   useEffect(() => {
     setPage(1);
@@ -145,7 +167,21 @@ export default function SearchScreen({ navigation }: any) {
           data={properties}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <PropertyCard property={item} onPress={() => handlePropertyPress(item.id)} />
+            <PropertyCard
+              property={item}
+              onPress={() => handlePropertyPress(item.id)}
+              showLister={!!user}
+              isFavorite={favoriteIds.has(item.id)}
+              onFavoritePress={
+                user
+                  ? () =>
+                      toggleFavorite.mutate({
+                        propertyId: item.id,
+                        isFav: favoriteIds.has(item.id),
+                      })
+                  : undefined
+              }
+            />
           )}
           contentContainerStyle={styles.listContent}
           onEndReached={loadMore}

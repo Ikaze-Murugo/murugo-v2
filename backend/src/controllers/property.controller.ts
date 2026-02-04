@@ -58,7 +58,8 @@ export const createProperty = async (req: AuthRequest, res: Response): Promise<v
       bedrooms,
       bathrooms,
       sizeSqm,
-      status: PropertyStatus.AVAILABLE,
+      // New properties start as pending so they can be reviewed by an admin
+      status: PropertyStatus.PENDING,
     });
 
     await propertyRepository.save(property);
@@ -441,7 +442,7 @@ export const getMyListings = async (req: AuthRequest, res: Response): Promise<vo
 export const updatePropertyStatus = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
+    const { status } = req.body as { status?: PropertyStatus | string };
     const userId = req.user?.id;
 
     if (!userId) {
@@ -449,7 +450,9 @@ export const updatePropertyStatus = async (req: AuthRequest, res: Response): Pro
       return;
     }
 
-    if (!status || !['active', 'inactive', 'sold', 'rented'].includes(status)) {
+    // Ensure provided status is one of the allowed enum values
+    const allowedStatuses = Object.values(PropertyStatus);
+    if (!status || typeof status !== 'string' || !allowedStatuses.includes(status as PropertyStatus)) {
       errorResponse(res, 'Invalid status', 400);
       return;
     }
@@ -470,7 +473,8 @@ export const updatePropertyStatus = async (req: AuthRequest, res: Response): Pro
       return;
     }
 
-    property.status = status;
+    // At this point, status is a valid PropertyStatus string
+    property.status = status as PropertyStatus;
     await propertyRepository.save(property);
 
     successResponse(res, { property }, 'Property status updated successfully');
@@ -516,7 +520,8 @@ export const getPropertyAnalytics = async (req: AuthRequest, res: Response): Pro
     successResponse(res, {
       analytics: {
         views: viewCount,
-        totalViews: property.views || 0,
+        // Use the numeric counter stored on the property entity
+        totalViews: property.viewsCount || 0,
         // Add more analytics as needed
       },
     }, 'Property analytics fetched successfully');

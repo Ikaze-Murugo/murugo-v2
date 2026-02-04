@@ -42,7 +42,7 @@ export default function SignupScreen({ navigation }: any) {
         role,
       });
       await setAuth(data.user, data.token);
-      // Navigator will switch to Main automatically
+      navigation.goBack();
     } catch (err: any) {
       const message =
         err.response?.data?.message || err.message || 'Registration failed. Please try again.';

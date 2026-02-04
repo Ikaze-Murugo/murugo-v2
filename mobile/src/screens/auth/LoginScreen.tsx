@@ -20,7 +20,7 @@ export default function LoginScreen({ navigation }: any) {
     try {
       const data = await authApi.login({ email: email.trim(), password });
       await setAuth(data.user, data.token);
-      // Navigator will switch to Main automatically
+      navigation.goBack();
     } catch (err: any) {
       const message = err.response?.data?.message || err.message || 'Login failed. Please try again.';
       Alert.alert('Login failed', message);
