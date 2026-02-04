@@ -15,6 +15,10 @@ export default function AdminDashboardScreen({ navigation }: any) {
     navigation.getParent()?.navigate('AdminUsers');
   };
 
+  const handleOpenPending = () => {
+    navigation.getParent()?.navigate('AdminPending');
+  };
+
   if (isLoading) {
     return (
       <View style={styles.centered}>
@@ -104,6 +108,15 @@ export default function AdminDashboardScreen({ navigation }: any) {
 
       <Button
         mode="contained"
+        onPress={handleOpenPending}
+        style={styles.pendingBtn}
+        icon="time-outline"
+      >
+        Review pending listings
+      </Button>
+
+      <Button
+        mode="contained"
         onPress={handleOpenUsers}
         style={styles.usersBtn}
         icon="account-multiple-outline"
@@ -135,7 +148,8 @@ const styles = StyleSheet.create({
   },
   cardValue: { marginTop: 8, marginBottom: 2 },
   cardLabel: { color: '#6B7280' },
-  usersBtn: { marginTop: 24 },
+  pendingBtn: { marginTop: 24 },
+  usersBtn: { marginTop: 12 },
   retryBtn: { marginTop: 16 },
 });
 

@@ -1,4 +1,5 @@
 import apiClient from './client';
+import type { Property, PaginationMeta, PropertyStatus } from '../types/property.types';
 
 interface ApiResponse<T> {
   status?: string;
@@ -35,12 +36,12 @@ export interface AdminUser {
 
 export interface AdminUsersResponse {
   users: AdminUser[];
-  pagination: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  };
+  pagination: PaginationMeta;
+}
+
+export interface PendingPropertiesResponse {
+  properties: Property[];
+  pagination: PaginationMeta;
 }
 
 export const adminApi = {
@@ -62,6 +63,29 @@ export const adminApi = {
         page: params?.page ?? 1,
         limit: params?.limit ?? 20,
       },
+    });
+    return res.data;
+  },
+
+  getPendingProperties: async (params?: {
+    page?: number;
+    limit?: number;
+  }): Promise<PendingPropertiesResponse> => {
+    const res = await apiClient.get<ApiResponse<PendingPropertiesResponse>>(
+      '/admin/properties/pending',
+      {
+        params: {
+          page: params?.page ?? 1,
+          limit: params?.limit ?? 20,
+        },
+      }
+    );
+    return res.data;
+  },
+
+  updatePropertyStatus: async (id: string, status: PropertyStatus): Promise<Property> => {
+    const res = await apiClient.patch<ApiResponse<Property>>(`/admin/properties/${id}/status`, {
+      status,
     });
     return res.data;
   },

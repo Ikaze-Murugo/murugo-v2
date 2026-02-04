@@ -9,6 +9,7 @@ import MyListingsScreen from '../screens/listings/MyListingsScreen';
 import CreatePropertyScreen from '../screens/listings/CreatePropertyScreen';
 import AdminDashboardScreen from '../screens/admin/AdminDashboardScreen';
 import AdminUsersScreen from '../screens/admin/AdminUsersScreen';
+import AdminPendingScreen from '../screens/admin/AdminPendingScreen';
 
 export type MainStackParamList = {
   MainTabs: undefined;
@@ -20,6 +21,7 @@ export type MainStackParamList = {
   CreateProperty: undefined;
   AdminDashboard: undefined;
   AdminUsers: undefined;
+   AdminPending: undefined;
 };
 
 const Stack = createStackNavigator<MainStackParamList>();
@@ -36,6 +38,7 @@ export default function MainStackNavigator() {
       <Stack.Screen name="CreateProperty" component={CreatePropertyScreen} />
       <Stack.Screen name="AdminDashboard" component={AdminDashboardScreen} />
       <Stack.Screen name="AdminUsers" component={AdminUsersScreen} />
+      <Stack.Screen name="AdminPending" component={AdminPendingScreen} />
     </Stack.Navigator>
   );
 }
