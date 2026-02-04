@@ -5,9 +5,13 @@ import { Property, PropertyStatus } from '../models/Property.model';
 import { PropertyView } from '../models/PropertyView.model';
 import { successResponse, errorResponse } from '../utils/response.util';
 import type { AuthRequest } from '../middlewares/auth.middleware';
+import { authenticate } from '../middlewares/auth.middleware';
 import * as propertyController from '../controllers/property.controller';
 
 const router = Router();
+
+// All admin routes require an authenticated user
+router.use(authenticate);
 
 // Simple admin-guard helper
 const requireAdmin = (req: AuthRequest) => {
