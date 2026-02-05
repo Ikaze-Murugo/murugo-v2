@@ -292,6 +292,30 @@ Total: about **6–8 weeks** to a first distributable APK.
 
 ---
 
+### APK Build Checklist (Quick Reference)
+
+Use this checklist any time you want to rebuild and distribute a new APK:
+
+1. **Prepare environment**
+   - [ ] Backend (`https://api.murugohomes.com/api/v1`) is healthy (health checks, basic endpoints).
+   - [ ] Mobile app points to the correct API base (`API_BASE_URL` in `src/config/env.ts`, or `EXPO_PUBLIC_API_URL` env).
+2. **Install and configure EAS (first time only)**
+   - [ ] `npm install -g eas-cli`
+   - [ ] `eas login`
+3. **Run the build (APK)**
+   - [ ] From `mobile/`, run:  
+     - `eas build --platform android --profile preview` (test build), or  
+     - `eas build --platform android --profile production` (release build).
+   - [ ] Wait for the build to complete and download the `.apk` from the EAS dashboard.
+4. **Test on a real device**
+   - [ ] Install the APK on an Android device.
+   - [ ] Verify: login/register, browse/search/filter, property detail, favorites, lister flows (My Listings, create listing), admin stats and approvals (if you log in as admin).
+5. **Distribute**
+   - [ ] Upload the APK to your chosen hosting location (e.g. `https://murugohomes.com/download/murugohomes.apk`).
+   - [ ] Update any website links or QR codes that point users to the new APK URL if it changed.
+
+---
+
 ## Phase 8: Distribution (APK Only)
 
 **Goal:** Users can download and install the APK from your site; no stores.
