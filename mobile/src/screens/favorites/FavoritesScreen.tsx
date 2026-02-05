@@ -33,9 +33,24 @@ export default function FavoritesScreen({ route, navigation }: any) {
   };
 
   if (isLoading) {
+    // Skeleton for favorites
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" />
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Button mode="text" onPress={() => navigation.goBack()}>
+            Back
+          </Button>
+          <Title style={styles.title}>My Favorites</Title>
+        </View>
+        <View style={styles.skeletonList}>
+          {[0, 1].map((i) => (
+            <View key={i} style={styles.skeletonCard}>
+              <View style={styles.skeletonImage} />
+              <View style={styles.skeletonLineShort} />
+              <View style={styles.skeletonLineLong} />
+            </View>
+          ))}
+        </View>
       </View>
     );
   }
@@ -120,4 +135,32 @@ const styles = StyleSheet.create({
   empty: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
   emptyText: { color: '#6B7280', textAlign: 'center' },
   signInBtn: { marginTop: 16 },
+  skeletonList: { paddingHorizontal: 16, paddingTop: 8 },
+  skeletonCard: {
+    marginBottom: 16,
+    borderRadius: 12,
+    backgroundColor: '#F3F4F6',
+    overflow: 'hidden',
+  },
+  skeletonImage: {
+    height: 180,
+    backgroundColor: '#E5E7EB',
+  },
+  skeletonLineShort: {
+    height: 14,
+    width: '40%',
+    marginTop: 12,
+    marginHorizontal: 12,
+    marginBottom: 6,
+    borderRadius: 6,
+    backgroundColor: '#E5E7EB',
+  },
+  skeletonLineLong: {
+    height: 12,
+    width: '70%',
+    marginHorizontal: 12,
+    marginBottom: 12,
+    borderRadius: 6,
+    backgroundColor: '#E5E7EB',
+  },
 });

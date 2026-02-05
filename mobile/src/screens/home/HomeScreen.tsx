@@ -61,9 +61,19 @@ export default function HomeScreen({ navigation }: any) {
   };
 
   if (isLoading) {
+    // Skeleton: 3 grey cards to indicate loading list
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" />
+      <View style={styles.container}>
+        <Title style={styles.title}>Latest properties</Title>
+        <View style={styles.skeletonList}>
+          {[0, 1, 2].map((i) => (
+            <View key={i} style={styles.skeletonCard}>
+              <View style={styles.skeletonImage} />
+              <View style={styles.skeletonLineShort} />
+              <View style={styles.skeletonLineLong} />
+            </View>
+          ))}
+        </View>
       </View>
     );
   }
@@ -121,4 +131,32 @@ const styles = StyleSheet.create({
   listContent: { paddingBottom: 24 },
   empty: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
   emptyText: { color: '#6B7280' },
+  skeletonList: { paddingHorizontal: 16, paddingTop: 8 },
+  skeletonCard: {
+    marginBottom: 16,
+    borderRadius: 12,
+    backgroundColor: '#F3F4F6',
+    overflow: 'hidden',
+  },
+  skeletonImage: {
+    height: 180,
+    backgroundColor: '#E5E7EB',
+  },
+  skeletonLineShort: {
+    height: 14,
+    width: '40%',
+    marginTop: 12,
+    marginHorizontal: 12,
+    marginBottom: 6,
+    borderRadius: 6,
+    backgroundColor: '#E5E7EB',
+  },
+  skeletonLineLong: {
+    height: 12,
+    width: '70%',
+    marginHorizontal: 12,
+    marginBottom: 12,
+    borderRadius: 6,
+    backgroundColor: '#E5E7EB',
+  },
 });

@@ -119,14 +119,17 @@ export default function PropertyDetailScreen({ route, navigation }: any) {
   };
 
   if (isLoading || !property) {
+    // Skeleton layout while detail loads
     return (
-      <View style={styles.centered}>
-        {error ? (
-          <Text>Failed to load property.</Text>
-        ) : (
-          <ActivityIndicator size="large" />
-        )}
-      </View>
+      <ScrollView style={styles.container} contentContainerStyle={styles.skeletonContent}>
+        <View style={styles.skeletonHero} />
+        <View style={styles.skeletonBody}>
+          <View style={styles.skeletonTitle} />
+          <View style={styles.skeletonPrice} />
+          <View style={styles.skeletonLine} />
+          <View style={[styles.skeletonLine, { width: '70%' }]} />
+        </View>
+      </ScrollView>
     );
   }
 
@@ -494,5 +497,32 @@ const styles = StyleSheet.create({
   fullScreenImage: {
     width: SCREEN_WIDTH,
     height: SCREEN_HEIGHT,
+  },
+  skeletonContent: { paddingBottom: 32 },
+  skeletonHero: {
+    height: GALLERY_HEIGHT,
+    backgroundColor: '#E5E7EB',
+  },
+  skeletonBody: { padding: 16 },
+  skeletonTitle: {
+    height: 20,
+    width: '60%',
+    borderRadius: 8,
+    backgroundColor: '#E5E7EB',
+    marginBottom: 12,
+  },
+  skeletonPrice: {
+    height: 18,
+    width: '40%',
+    borderRadius: 8,
+    backgroundColor: '#E5E7EB',
+    marginBottom: 16,
+  },
+  skeletonLine: {
+    height: 12,
+    width: '90%',
+    borderRadius: 8,
+    backgroundColor: '#E5E7EB',
+    marginBottom: 8,
   },
 });

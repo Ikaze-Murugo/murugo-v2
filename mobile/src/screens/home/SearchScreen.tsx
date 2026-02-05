@@ -149,8 +149,15 @@ export default function SearchScreen({ navigation }: any) {
       </View>
 
       {isLoading ? (
-        <View style={styles.centered}>
-          <ActivityIndicator size="large" />
+        // Skeleton list while first page loads
+        <View style={styles.skeletonList}>
+          {[0, 1, 2].map((i) => (
+            <View key={i} style={styles.skeletonCard}>
+              <View style={styles.skeletonImage} />
+              <View style={styles.skeletonLineShort} />
+              <View style={styles.skeletonLineLong} />
+            </View>
+          ))}
         </View>
       ) : error ? (
         <View style={styles.centered}>
@@ -209,4 +216,32 @@ const styles = StyleSheet.create({
   empty: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
   emptyText: { color: '#6B7280' },
   footer: { padding: 16, alignItems: 'center' },
+  skeletonList: { paddingHorizontal: 16, paddingTop: 8 },
+  skeletonCard: {
+    marginBottom: 16,
+    borderRadius: 12,
+    backgroundColor: '#F3F4F6',
+    overflow: 'hidden',
+  },
+  skeletonImage: {
+    height: 180,
+    backgroundColor: '#E5E7EB',
+  },
+  skeletonLineShort: {
+    height: 14,
+    width: '40%',
+    marginTop: 12,
+    marginHorizontal: 12,
+    marginBottom: 6,
+    borderRadius: 6,
+    backgroundColor: '#E5E7EB',
+  },
+  skeletonLineLong: {
+    height: 12,
+    width: '70%',
+    marginHorizontal: 12,
+    marginBottom: 12,
+    borderRadius: 6,
+    backgroundColor: '#E5E7EB',
+  },
 });

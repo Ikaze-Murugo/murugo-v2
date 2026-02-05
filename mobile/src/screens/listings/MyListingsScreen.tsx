@@ -65,9 +65,25 @@ export default function MyListingsScreen({ navigation }: any) {
   };
 
   if (isLoading) {
+    // Skeleton state for lister dashboard
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" />
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+            <Ionicons name="arrow-back" size={24} />
+          </TouchableOpacity>
+          <Title style={styles.title}>My Listings</Title>
+          <View style={styles.addBtn} />
+        </View>
+        <View style={styles.skeletonList}>
+          {[0, 1].map((i) => (
+            <View key={i} style={styles.skeletonCard}>
+              <View style={styles.skeletonImage} />
+              <View style={styles.skeletonLineShort} />
+              <View style={styles.skeletonLineLong} />
+            </View>
+          ))}
+        </View>
       </View>
     );
   }
@@ -168,4 +184,32 @@ const styles = StyleSheet.create({
   addPropertyBtn: { marginTop: 24 },
   listContent: { paddingBottom: 24 },
   retryBtn: { marginTop: 16 },
+  skeletonList: { paddingHorizontal: 16, paddingTop: 8 },
+  skeletonCard: {
+    marginBottom: 16,
+    borderRadius: 12,
+    backgroundColor: '#F3F4F6',
+    overflow: 'hidden',
+  },
+  skeletonImage: {
+    height: 180,
+    backgroundColor: '#E5E7EB',
+  },
+  skeletonLineShort: {
+    height: 14,
+    width: '40%',
+    marginTop: 12,
+    marginHorizontal: 12,
+    marginBottom: 6,
+    borderRadius: 6,
+    backgroundColor: '#E5E7EB',
+  },
+  skeletonLineLong: {
+    height: 12,
+    width: '70%',
+    marginHorizontal: 12,
+    marginBottom: 12,
+    borderRadius: 6,
+    backgroundColor: '#E5E7EB',
+  },
 });

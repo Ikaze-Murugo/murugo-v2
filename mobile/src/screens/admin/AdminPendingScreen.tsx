@@ -45,9 +45,24 @@ export default function AdminPendingScreen({ navigation }: any) {
   };
 
   if (isLoading) {
+    // Skeleton state for pending approvals
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" />
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Button mode="text" onPress={handleBack} icon="arrow-left">
+            Back
+          </Button>
+          <Title style={styles.title}>Pending approvals</Title>
+        </View>
+        <View style={styles.skeletonList}>
+          {[0, 1].map((i) => (
+            <View key={i} style={styles.skeletonCard}>
+              <View style={styles.skeletonLineShort} />
+              <View style={styles.skeletonLineLong} />
+              <View style={styles.skeletonLineMuted} />
+            </View>
+          ))}
+        </View>
       </View>
     );
   }
@@ -202,5 +217,32 @@ const styles = StyleSheet.create({
     backgroundColor: '#FBBF24',
   },
   statusText: { fontSize: 11, textTransform: 'capitalize', color: '#92400E' },
+  skeletonList: { padding: 16 },
+  skeletonCard: {
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: '#F3F4F6',
+    marginBottom: 12,
+  },
+  skeletonLineShort: {
+    height: 14,
+    width: '60%',
+    borderRadius: 6,
+    backgroundColor: '#E5E7EB',
+    marginBottom: 8,
+  },
+  skeletonLineLong: {
+    height: 12,
+    width: '80%',
+    borderRadius: 6,
+    backgroundColor: '#E5E7EB',
+    marginBottom: 6,
+  },
+  skeletonLineMuted: {
+    height: 10,
+    width: '40%',
+    borderRadius: 6,
+    backgroundColor: '#E5E7EB',
+  },
 });
 
