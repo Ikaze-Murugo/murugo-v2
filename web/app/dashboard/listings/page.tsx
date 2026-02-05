@@ -127,7 +127,15 @@ export default function MyListingsPage() {
   };
 
   const properties = data?.properties || [];
-  
+  const total = properties.length;
+  const totalsByStatus = properties.reduce(
+    (acc, p) => {
+      acc[p.status] = (acc[p.status] || 0) + 1;
+      return acc;
+    },
+    {} as Record<PropertyStatus, number>
+  );
+
   // Filter properties by status
   const filteredProperties = statusFilter === "all" 
     ? properties 
@@ -238,11 +246,11 @@ export default function MyListingsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-3xl font-bold mb-2">My Listings</h1>
           <p className="text-muted-foreground">
-            Manage your property listings ({properties.length} total)
+            Manage your listings and track performance.
           </p>
         </div>
         <Link href="/dashboard/listings/new">
@@ -252,6 +260,51 @@ export default function MyListingsPage() {
           </Button>
         </Link>
       </div>
+
+      {/* Summary cards */}
+      {properties.length > 0 && (
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
+          <Card>
+            <CardContent className="py-4">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Total listings
+              </p>
+              <p className="mt-1 text-2xl font-bold">{total}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="py-4">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Pending
+              </p>
+              <p className="mt-1 text-2xl font-bold">
+                {totalsByStatus[PropertyStatus.PENDING] ?? 0}
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="py-4">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Available
+              </p>
+              <p className="mt-1 text-2xl font-bold">
+                {totalsByStatus[PropertyStatus.AVAILABLE] ?? 0}
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="py-4">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Sold / Rented
+              </p>
+              <p className="mt-1 text-2xl font-bold">
+                {(totalsByStatus[PropertyStatus.SOLD] ?? 0) +
+                  (totalsByStatus[PropertyStatus.RENTED] ?? 0)}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Status Filter */}
       {properties.length > 0 && (
