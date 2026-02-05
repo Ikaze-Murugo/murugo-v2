@@ -39,6 +39,11 @@ export function SiteHeader() {
                 Contact us
               </Button>
             </Link>
+            <Link href="/download">
+              <Button variant="ghost" size="sm" className={pathname === "/download" ? "bg-primary/10 text-primary" : ""}>
+                Download app
+              </Button>
+            </Link>
           </nav>
 
           <div className="flex items-center gap-2">
@@ -116,6 +121,11 @@ export function SiteHeader() {
             <Link href="/contact" onClick={() => setMobileNavOpen(false)}>
               <Button variant="ghost" className="w-full justify-start" size="sm">
                 Contact us
+              </Button>
+            </Link>
+            <Link href="/download" onClick={() => setMobileNavOpen(false)}>
+              <Button variant="ghost" className="w-full justify-start" size="sm">
+                Download app
               </Button>
             </Link>
             {isAuthenticated ? (

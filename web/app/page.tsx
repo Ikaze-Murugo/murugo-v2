@@ -29,7 +29,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "Is the mobile app available?",
-    a: "Our mobile app is coming soon. You can use the website on your phone in the meantime—it's fully responsive.",
+    a: "Yes. The Android app (APK) is available from our Download page—use the \"Download app\" link in the menu or go to the homepage and tap the Android download button. iOS is coming soon. The website works on all devices too.",
   },
 ];
 
@@ -89,20 +89,19 @@ export default function HomePage() {
               </div>
             </div>
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4">
-              <span className="relative inline-block">
-                <span className="inline-flex items-center gap-2 h-11 px-4 rounded-lg border bg-muted/50 cursor-not-allowed opacity-90">
-                  <Image
-                    src={landingImages.appStores.google}
-                    alt="Get it on Google Play"
-                    width={140}
-                    height={42}
-                    className="h-9 w-auto object-contain"
-                  />
-                </span>
-                <span className="absolute -top-1 -right-1 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-amber-500 text-white rounded shadow">
-                  Coming soon
-                </span>
-              </span>
+              <Link
+                href="/download"
+                className="inline-flex items-center gap-2 h-11 px-4 rounded-lg border bg-primary/10 border-primary/30 text-primary hover:bg-primary/20 transition-colors font-medium"
+              >
+                <Image
+                  src={landingImages.appStores.google}
+                  alt="Download Android app"
+                  width={140}
+                  height={42}
+                  className="h-9 w-auto object-contain"
+                />
+                <span className="text-xs font-semibold">APK</span>
+              </Link>
               <span className="relative inline-block">
                 <span className="inline-flex items-center gap-2 h-11 px-4 rounded-lg border bg-muted/50 cursor-not-allowed opacity-90">
                   <Image
