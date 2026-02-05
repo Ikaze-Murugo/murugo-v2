@@ -19,6 +19,8 @@ interface PropertyCardProps {
   showLister?: boolean;
   /** When true (e.g. My Listings), show status chip on card */
   showStatus?: boolean;
+  /** When true (e.g. My Listings), show view count for listers */
+  showViews?: boolean;
 }
 
 const STATUS_LABEL: Record<PropertyStatus, string> = {
@@ -35,6 +37,7 @@ export function PropertyCard({
   onFavoritePress,
   showLister = false,
   showStatus = false,
+  showViews = false,
 }: PropertyCardProps) {
   const { colors } = useTheme();
   const imageUrl = property.media?.[0]?.url;
@@ -131,6 +134,14 @@ export function PropertyCard({
                   {property.sizeSqm} m²
                 </Text>
               )}
+            </View>
+          )}
+          {showViews && (
+            <View style={styles.viewsRow}>
+              <Ionicons name="eye-outline" size={14} color={colors.placeholder} />
+              <Text variant="bodySmall" style={styles.viewsText}>
+                {property.viewsCount ?? 0} views
+              </Text>
             </View>
           )}
           {showLister && lister && listerName && (
@@ -259,6 +270,15 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   meta: {
+    color: '#6B7280',
+  },
+  viewsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 6,
+  },
+  viewsText: {
     color: '#6B7280',
   },
   listerRow: {

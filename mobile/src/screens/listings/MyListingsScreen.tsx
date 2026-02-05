@@ -229,6 +229,7 @@ export default function MyListingsScreen({ navigation }: any) {
                     onPress={() => handlePropertyPress(item.id)}
                     showStatus
                     showLister={false}
+                    showViews
                   />
                 </TouchableOpacity>
                 {statusActions.length > 0 && (

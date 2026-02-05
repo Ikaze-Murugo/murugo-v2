@@ -130,11 +130,14 @@ export default function ListerPublicPage() {
           </div>
         </div>
 
-        {/* Properties */}
-        <div>
-          <h2 className="text-xl font-semibold mb-4">
-            Listings ({properties.length})
+        {/* Active listings */}
+        <section className="rounded-2xl border bg-card shadow-sm overflow-hidden p-6 md:p-8">
+          <h2 className="text-xl font-semibold mb-1">
+            Active listings
           </h2>
+          <p className="text-sm text-muted-foreground mb-6">
+            {properties.length} {properties.length === 1 ? 'property' : 'properties'} available
+          </p>
           {properties.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {properties.map((property) => (
@@ -146,7 +149,7 @@ export default function ListerPublicPage() {
               No listings yet.
             </div>
           )}
-        </div>
+        </section>
       </div>
     </div>
   );

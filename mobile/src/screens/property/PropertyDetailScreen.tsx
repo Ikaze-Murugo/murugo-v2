@@ -19,6 +19,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { propertyApi } from '../../api/properties';
 import { favoriteApi } from '../../api/favorites';
 import { useAuthStore } from '../../store/slices/authSlice';
+import { WEB_APP_URL } from '../../config/env';
 
 const GALLERY_HEIGHT = 280;
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -48,6 +49,13 @@ export default function PropertyDetailScreen({ route, navigation }: any) {
   React.useEffect(() => {
     if (favoriteChecked !== undefined) setIsFavorite(favoriteChecked);
   }, [favoriteChecked]);
+
+  // Record view when property is loaded (backend counts once per user, skips owner)
+  React.useEffect(() => {
+    if (!property?.id || !isAuthenticated) return;
+    if (userId && property.listerId === userId) return;
+    propertyApi.recordView(property.id).catch(() => {});
+  }, [property?.id, isAuthenticated, userId, property?.listerId]);
 
   const addFavoriteMutation = useMutation({
     mutationFn: () => favoriteApi.add(propertyId),
@@ -352,6 +360,15 @@ export default function PropertyDetailScreen({ route, navigation }: any) {
                     WhatsApp
                   </Button>
                 </View>
+                <Button
+                  mode="text"
+                  compact
+                  onPress={() => Linking.openURL(`${WEB_APP_URL}/listers/${property.listerId}`)}
+                  icon={() => <Ionicons name="open-outline" size={18} color={colors.primary} />}
+                  style={styles.viewListerBtn}
+                >
+                  View full profile & more listings
+                </Button>
               </View>
             </View>
           </>
@@ -477,6 +494,7 @@ const styles = StyleSheet.create({
   listerInfo: { flex: 1 },
   contactRow: { flexDirection: 'row', gap: 8, marginTop: 8 },
   contactBtn: { flex: 1 },
+  viewListerBtn: { marginTop: 8, alignSelf: 'flex-start' },
   fullScreenOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.95)',

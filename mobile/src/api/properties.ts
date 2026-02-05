@@ -61,6 +61,11 @@ export const propertyApi = {
     return res.data.property;
   },
 
+  /** Record a view for this property (optionalAuth; backend counts once per user, skips owner). */
+  recordView: async (id: string): Promise<void> => {
+    await apiClient.post(`/properties/${id}/view`, {});
+  },
+
   getMyListings: async (params?: {
     page?: number;
     limit?: number;
