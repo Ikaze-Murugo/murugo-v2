@@ -5,6 +5,7 @@ import { User } from '../models/User.model';
 import { Profile } from '../models/Profile.model';
 import { UserPreference } from '../models/UserPreference.model';
 import { Property, PropertyStatus } from '../models/Property.model';
+import { FcmToken } from '../models/FcmToken.model';
 import { successResponse, errorResponse } from '../utils/response.util';
 
 export const getProfile = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -313,6 +314,58 @@ export const deleteAccount = async (req: AuthRequest, res: Response): Promise<vo
     // TODO: Optionally, delete or anonymize user data
 
     successResponse(res, {}, 'Account deleted successfully');
+  } catch (error: any) {
+    errorResponse(res, error.message, 500);
+  }
+};
+
+export const saveFcmToken = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user?.id;
+    const { token, deviceId } = req.body as { token?: string; deviceId?: string };
+
+    if (!userId) {
+      errorResponse(res, 'User not authenticated', 401);
+      return;
+    }
+
+    if (!token || typeof token !== 'string') {
+      errorResponse(res, 'FCM token is required', 400);
+      return;
+    }
+
+    const fcmRepository = AppDataSource.getRepository(FcmToken);
+
+    // If deviceId provided, replace existing token for this device
+    if (deviceId) {
+      const existing = await fcmRepository.findOne({
+        where: { userId, deviceId },
+      });
+      if (existing) {
+        existing.token = token;
+        await fcmRepository.save(existing);
+        successResponse(res, { saved: true }, 'FCM token updated');
+        return;
+      }
+    }
+
+    // Avoid duplicate tokens for same user
+    const sameToken = await fcmRepository.findOne({
+      where: { userId, token },
+    });
+    if (sameToken) {
+      successResponse(res, { saved: true }, 'FCM token already registered');
+      return;
+    }
+
+    const fcmToken = fcmRepository.create({
+      userId,
+      token,
+      deviceId: deviceId ?? null,
+    });
+    await fcmRepository.save(fcmToken);
+
+    successResponse(res, { saved: true }, 'FCM token saved successfully');
   } catch (error: any) {
     errorResponse(res, error.message, 500);
   }

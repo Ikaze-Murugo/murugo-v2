@@ -5,7 +5,9 @@ import { Property, PropertyStatus, TransactionType } from '../models/Property.mo
 import { PropertyMedia, MediaType } from '../models/PropertyMedia.model';
 import { PropertyView } from '../models/PropertyView.model';
 import { User } from '../models/User.model';
+import { FcmToken } from '../models/FcmToken.model';
 import { successResponse, errorResponse } from '../utils/response.util';
+import { sendPushToTokens } from '../services/push.service';
 import { Like, Between, In, MoreThanOrEqual, LessThanOrEqual, Brackets } from 'typeorm';
 
 export const createProperty = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -474,8 +476,27 @@ export const updatePropertyStatus = async (req: AuthRequest, res: Response): Pro
     }
 
     // At this point, status is a valid PropertyStatus string
+    const previousStatus = property.status;
     property.status = status as PropertyStatus;
     await propertyRepository.save(property);
+
+    // When a listing is approved (status -> available), notify the lister via push
+    if (previousStatus !== PropertyStatus.AVAILABLE && property.status === PropertyStatus.AVAILABLE) {
+      const fcmRepository = AppDataSource.getRepository(FcmToken);
+      const tokens = await fcmRepository.find({
+        where: { userId: property.listerId },
+        select: ['token'],
+      });
+      const tokenStrings = tokens.map((t) => t.token).filter(Boolean);
+      if (tokenStrings.length > 0) {
+        sendPushToTokens(
+          tokenStrings,
+          'Listing approved',
+          `"${property.title}" is now live and visible to seekers.`,
+          { propertyId: property.id, type: 'listing_approved' }
+        ).catch((err) => console.warn('Push send failed:', err));
+      }
+    }
 
     successResponse(res, { property }, 'Property status updated successfully');
   } catch (error: any) {

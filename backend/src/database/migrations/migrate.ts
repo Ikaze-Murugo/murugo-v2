@@ -15,6 +15,7 @@ import { Favorite } from '../../models/Favorite.model';
 import { Review } from '../../models/Review.model';
 import { PropertyView } from '../../models/PropertyView.model';
 import { Notification } from '../../models/Notification.model';
+import { FcmToken } from '../../models/FcmToken.model';
 
 // Only show banner if this file is executed directly
 if (require.main === module) {
@@ -48,6 +49,7 @@ const MigrationDataSource = new DataSource({
     Review,
     PropertyView,
     Notification,
+    FcmToken,
   ],
   subscribers: [],
   ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,

@@ -10,9 +10,11 @@ import reviewRoutes from './review.routes';
 import notificationRoutes from './notification.routes';
 import searchRoutes from './search.routes';
 import uploadRoutes from './upload.routes';
+import appRoutes from './app.routes';
 
 const router = Router();
 
+router.use('/app', appRoutes);
 router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
 router.use('/properties', propertyRoutes);

@@ -10,6 +10,7 @@ router.use(authenticate);
 
 router.get('/profile', userController.getProfile);
 router.put('/profile', upload.single('avatar'), userController.updateProfile);
+router.post('/fcm-token', userController.saveFcmToken);
 router.put('/password', userController.updatePassword);
 router.put('/preferences', userController.updatePreferences);
 router.get('/preferences', userController.getPreferences);

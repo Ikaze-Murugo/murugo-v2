@@ -9,6 +9,7 @@ import { Favorite } from '../models/Favorite.model';
 import { Review } from '../models/Review.model';
 import { PropertyView } from '../models/PropertyView.model';
 import { Notification } from '../models/Notification.model';
+import { FcmToken } from '../models/FcmToken.model';
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
@@ -30,6 +31,7 @@ export const AppDataSource = new DataSource({
     Review,
     PropertyView,
     Notification,
+    FcmToken,
   ],
   migrations: process.env.NODE_ENV === 'production' 
     ? ['dist/database/migrations/*.js']
