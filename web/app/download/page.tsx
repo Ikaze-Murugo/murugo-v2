@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Smartphone, Download, ArrowLeft, CheckCircle2 } from "lucide-react";
 
+// EAS build artifact URL — update after each new build (from EAS dashboard or build output)
+const APK_URL = "https://expo.dev/artifacts/eas/aSrWybB8aTgmoVr7KoiWLm.apk";
 const APK_FILENAME = "murugohomes.apk";
-const APK_URL = `/download/${APK_FILENAME}`;
 
 export default function DownloadPage() {
   return (
@@ -31,7 +32,7 @@ export default function DownloadPage() {
               Get the Android app to browse properties, save favorites, and contact listers on the go.
             </p>
 
-            <a href={APK_URL} download={APK_FILENAME}>
+            <a href={APK_URL} download={APK_FILENAME} target="_blank" rel="noopener noreferrer">
               <Button size="lg" className="gap-2 w-full sm:w-auto min-w-[220px]">
                 <Download className="h-5 w-5" />
                 Download for Android

@@ -6,23 +6,7 @@ const nextConfig: NextConfig = {
   // Skip static generation for pages with React context
   skipTrailingSlashRedirect: true,
   skipMiddlewareUrlNormalize: true,
-  async headers() {
-    return [
-      {
-        source: "/download/murugohomes.apk",
-        headers: [
-          {
-            key: "Content-Type",
-            value: "application/vnd.android.package-archive",
-          },
-          {
-            key: "Content-Disposition",
-            value: "attachment; filename=\"murugohomes.apk\"",
-          },
-        ],
-      },
-    ];
-  },
+  // APK is served from EAS artifact URL (see web/app/download/page.tsx); no local APK headers needed
   images: {
     remotePatterns: [
       {

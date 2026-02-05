@@ -1,17 +1,14 @@
-# Android APK hosting
+# Download page — APK via EAS (Option A)
 
-Place your built Android APK here so it can be downloaded from the website.
+The site does **not** host the APK in this repo. The download page links directly to the **EAS build artifact URL**.
 
-**File to add:** `murugohomes.apk`
+## When you release a new build
 
-- Build the APK with EAS: from `mobile/` run  
-  `eas build --platform android --profile production` (or `preview`).
-- Download the `.apk` from the EAS build page.
-- Rename it to `murugohomes.apk` and put it in this folder:  
-  `web/public/download/murugohomes.apk`
+1. From `mobile/`, run:  
+   `eas build --platform android --profile preview` (or `production`).
+2. After the build finishes, copy the **artifact URL** from the EAS output or dashboard, e.g.:  
+   `https://expo.dev/artifacts/eas/XXXXXXXX.apk`
+3. In `web/app/download/page.tsx`, update the `APK_URL` constant with this new URL.
+4. Commit and deploy the web app. No APK file is committed to Git.
 
-The download page will then serve it at:
-
-**https://your-domain.com/download/murugohomes.apk**
-
-Do not commit large binaries if your repo has size limits; consider using Git LFS or uploading the APK to the server after deploy and syncing it into this path.
+This keeps the repo small and avoids GitHub file size limits.
