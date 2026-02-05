@@ -1,6 +1,6 @@
 {
   "expo": {
-    "newArchEnabled": false,
+    "newArchEnabled": true,
     "name": "Rwanda Real Estate",
     "slug": "rwanda-real-estate",
     "version": "1.0.0",
