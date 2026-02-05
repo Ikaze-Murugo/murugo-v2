@@ -130,9 +130,12 @@ export default function PropertyDetailScreen({ route, navigation }: any) {
     );
   }
 
-  const imageMedia = (property.media ?? [])
-    .filter((m) => m.type === 'image')
-    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  // Backend currently stores only image media for properties, and uses a "mediaType" field.
+  // To avoid mismatches between "type" and "mediaType", treat all media entries as images here
+  // and just sort by their "order".
+  const imageMedia = (property.media ?? []).sort(
+    (a, b) => (a.order ?? 0) - (b.order ?? 0)
+  );
   const imageUrls = imageMedia.map((m) => m.url);
   const hasMultipleImages = imageUrls.length > 1;
   const locationStr = property.location
