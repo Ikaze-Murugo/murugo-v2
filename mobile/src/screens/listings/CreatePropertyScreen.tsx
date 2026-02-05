@@ -211,16 +211,17 @@ export default function CreatePropertyScreen({ navigation }: any) {
 
       {/* Step indicator */}
       <View style={styles.stepRow}>
-        {STEPS.map((s) => (
-          <View
-            key={s.id}
-            style={[styles.stepDot, step === s.id && styles.stepDotActive]}
-          >
-            <Text style={[styles.stepNum, step === s.id && styles.stepNumActive]}>
-              {s.id}
-            </Text>
-          </View>
-          {s.id < STEPS.length && <View style={styles.stepLine} />}
+        {STEPS.map((s, index) => (
+          <React.Fragment key={s.id}>
+            <View
+              style={[styles.stepDot, step === s.id && styles.stepDotActive]}
+            >
+              <Text style={[styles.stepNum, step === s.id && styles.stepNumActive]}>
+                {s.id}
+              </Text>
+            </View>
+            {index < STEPS.length - 1 ? <View style={styles.stepLine} /> : null}
+          </React.Fragment>
         ))}
       </View>
       <Text variant="bodySmall" style={styles.stepLabel}>
