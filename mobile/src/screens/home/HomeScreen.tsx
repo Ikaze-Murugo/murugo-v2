@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { View, StyleSheet, FlatList } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { Text, Title, ActivityIndicator } from 'react-native-paper';
+import { Text, Title, Button } from 'react-native-paper';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { propertyApi } from '../../api/properties';
 import { favoriteApi } from '../../api/favorites';
@@ -44,7 +44,7 @@ export default function HomeScreen({ navigation }: any) {
     }, [stackNav])
   );
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, refetch, isRefetching } = useQuery({
     queryKey: ['properties', 'latest'],
     queryFn: () =>
       propertyApi.getAll({
@@ -80,8 +80,22 @@ export default function HomeScreen({ navigation }: any) {
 
   if (error) {
     return (
-      <View style={styles.centered}>
-        <Text>Could not load properties. Pull to retry.</Text>
+      <View style={[styles.centered, styles.errorContainer]}>
+        <Text variant="bodyLarge" style={styles.errorText}>
+          Could not load properties.
+        </Text>
+        <Text variant="bodyMedium" style={styles.errorHint}>
+          Check your internet connection. If you're on Wi‑Fi, try mobile data or vice versa.
+        </Text>
+        <Button
+          mode="contained"
+          onPress={() => refetch()}
+          loading={isRefetching}
+          disabled={isRefetching}
+          style={styles.retryButton}
+        >
+          {isRefetching ? 'Retrying…' : 'Retry'}
+        </Button>
       </View>
     );
   }
@@ -127,6 +141,10 @@ export default function HomeScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  errorContainer: { padding: 24 },
+  errorText: { textAlign: 'center', marginBottom: 8 },
+  errorHint: { textAlign: 'center', color: '#6B7280', marginBottom: 16 },
+  retryButton: { minWidth: 160 },
   title: { marginHorizontal: 16, marginTop: 16, marginBottom: 8 },
   listContent: { paddingBottom: 24 },
   empty: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
