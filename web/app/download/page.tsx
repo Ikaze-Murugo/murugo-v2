@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Smartphone, Download, ArrowLeft, CheckCircle2 } from "lucide-react";
 
 // EAS build artifact URL — update after each new build (from EAS dashboard or build output)
-const APK_URL = "https://expo.dev/artifacts/eas/aSrWybB8aTgmoVr7KoiWLm.apk";
+const APK_URL = "https://expo.dev/artifacts/eas/vbCLhheXAQnDMGNGJ6bykP.apk";
 const APK_FILENAME = "murugohomes.apk";
 
 export default function DownloadPage() {
