@@ -8,6 +8,7 @@ import { favoriteApi } from '../../api/favorites';
 import { PropertyCard } from '../../components/PropertyCard';
 import { useAuthStore } from '../../store/slices/authSlice';
 import { getOpenAuthAfterOnboarding, clearOpenAuthAfterOnboarding } from '../../config/storage';
+import { API_BASE_URL } from '../../config/env';
 import type { Property } from '../../types/property.types';
 
 export default function HomeScreen({ navigation }: any) {
@@ -87,6 +88,9 @@ export default function HomeScreen({ navigation }: any) {
         <Text variant="bodyMedium" style={styles.errorHint}>
           Check your internet connection. If you're on Wi‑Fi, try mobile data or vice versa.
         </Text>
+        <Text style={styles.apiUrlHint} numberOfLines={2}>
+          API: {API_BASE_URL}
+        </Text>
         <Button
           mode="contained"
           onPress={() => refetch()}
@@ -143,7 +147,8 @@ const styles = StyleSheet.create({
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   errorContainer: { padding: 24 },
   errorText: { textAlign: 'center', marginBottom: 8 },
-  errorHint: { textAlign: 'center', color: '#6B7280', marginBottom: 16 },
+  errorHint: { textAlign: 'center', color: '#6B7280', marginBottom: 8 },
+  apiUrlHint: { textAlign: 'center', color: '#9CA3AF', fontSize: 11, marginBottom: 16 },
   retryButton: { minWidth: 160 },
   title: { marginHorizontal: 16, marginTop: 16, marginBottom: 8 },
   listContent: { paddingBottom: 24 },

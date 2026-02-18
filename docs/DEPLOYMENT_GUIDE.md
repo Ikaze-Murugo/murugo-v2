@@ -524,12 +524,13 @@ eas build --platform ios --profile production
 - For Android: Install APK directly or upload to Google Play
 - For iOS: Upload IPA to App Store Connect
 
-**3.7. API URL for production (if you see "Could not load properties")**
-- The app defaults to `https://api.murugohomes.com/api/v1`. If your backend is at a different URL, set **EAS environment variables** so the build uses it:
-  - In [expo.dev](https://expo.dev) → your project → **Secrets** (or use `eas secret:create`), add:
-    - `EXPO_PUBLIC_API_URL` = `https://your-api.com/api/v1` (no trailing slash)
-  - Rebuild the app so the new URL is baked in.
-- Ensure the backend is deployed and reachable (e.g. open `https://your-api.com/api/v1/health` or `/properties` in a browser). If the API is down or the URL is wrong, the app will show "Could not load properties" until the user has connectivity to the correct API.
+**3.7. API URL for production (if you see "Could not load properties" or "Request failed with status code 404" on login)**
+- The app defaults to `https://api.murugohomes.com/api/v1`. If your backend is at a **different** URL (e.g. Render, Railway, or your own server), you **must** set the API URL for EAS builds:
+  1. Go to [expo.dev](https://expo.dev) → your account → project **rwanda-real-estate** → **Secrets** (or run `eas secret:create` in the `mobile` folder).
+  2. Add a secret: name = `EXPO_PUBLIC_API_URL`, value = `https://your-actual-backend.com/api/v1` (no trailing slash).
+  3. Run a **new** EAS build (`eas build --platform android --profile production`). The new APK will use this URL.
+- To confirm what URL the app is using: open the app, go to the home screen, and if properties fail to load the error screen shows **API: &lt;url&gt;**.
+- Ensure the backend is reachable: in a browser open `https://your-api.com/api/v1/health` or `https://your-api.com/api/v1/properties`. If you get 404 or no response there, the app will get 404 too.
 
 ### Step 4: Alternative - Classic Expo Build
 

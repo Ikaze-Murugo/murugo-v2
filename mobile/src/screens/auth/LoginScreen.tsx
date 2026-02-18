@@ -22,7 +22,13 @@ export default function LoginScreen({ navigation }: any) {
       await setAuth(data.user, data.token);
       navigation.goBack();
     } catch (err: any) {
-      const message = err.response?.data?.message || err.message || 'Login failed. Please try again.';
+      const status = err.response?.status;
+      let message = err.response?.data?.message || err.message || 'Login failed. Please try again.';
+      if (status === 404) {
+        message = 'Server not found (404). The app cannot reach the API. If you use a custom backend URL, set EXPO_PUBLIC_API_URL in EAS and rebuild the app.';
+      } else if (status >= 500) {
+        message = 'Server error. Please try again later.';
+      }
       Alert.alert('Login failed', message);
     } finally {
       setLoading(false);

@@ -24,7 +24,7 @@ export class FcmToken {
   token: string;
 
   /** Optional: identify device so we can replace token for same device */
-  @Column({ nullable: true })
+  @Column({ type: 'text', nullable: true })
   deviceId: string | null;
 
   @CreateDateColumn()
