@@ -16,6 +16,21 @@ interface PropertyCardProps {
   onFavoriteChange?: () => void;
 }
 
+// Status color mapping
+const getStatusBadge = (status: string) => {
+  const lowerStatus = status.toLowerCase();
+  if (lowerStatus === "available") {
+    return { text: "Available", className: "bg-emerald-500 text-white" };
+  }
+  if (lowerStatus === "pending") {
+    return { text: "Pending", className: "bg-amber-500 text-white" };
+  }
+  if (lowerStatus === "sold" || lowerStatus === "rented") {
+    return { text: status, className: "bg-slate-500 text-white" };
+  }
+  return null;
+};
+
 export function PropertyCard({ property, onFavoriteChange }: PropertyCardProps) {
   const { isAuthenticated } = useAuth();
   const [isFavorite, setIsFavorite] = useState(false);
@@ -66,11 +81,13 @@ export function PropertyCard({ property, onFavoriteChange }: PropertyCardProps) 
     ? [property.location.sector, property.location.district].filter(Boolean).join(", ") || "Location TBD"
     : "Location TBD";
 
+  const statusBadge = getStatusBadge(property.status);
+
   return (
     <Link href={`/properties/${property.id}`}>
-      <Card className="group overflow-hidden hover:shadow-lg transition-shadow duration-300">
+      <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
         {/* Image */}
-        <div className="relative h-48 overflow-hidden bg-muted">
+        <div className="relative h-44 overflow-hidden bg-muted">
           {primaryImage ? (
             <Image
               src={primaryImage}
@@ -80,7 +97,7 @@ export function PropertyCard({ property, onFavoriteChange }: PropertyCardProps) 
               className="object-cover group-hover:scale-105 transition-transform duration-300"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">
+            <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">
               No image
             </div>
           )}
@@ -89,62 +106,69 @@ export function PropertyCard({ property, onFavoriteChange }: PropertyCardProps) 
           <button
             onClick={handleFavoriteClick}
             disabled={isLoading}
-            className="absolute top-2 right-2 p-2 rounded-full bg-white/90 hover:bg-white transition-colors"
+            className="absolute top-2 right-2 p-1.5 rounded-full bg-white/90 hover:bg-white transition-colors shadow-sm"
           >
             <Heart
-              className={`h-5 w-5 ${
+              className={`h-4 w-4 ${
                 isFavorite ? "fill-red-500 text-red-500" : "text-gray-600"
               }`}
             />
           </button>
 
-          {/* Status Badge */}
-          {property.isFeatured && (
-            <div className="absolute top-2 left-2 px-2 py-1 bg-primary text-white text-xs font-semibold rounded">
-              Featured
-            </div>
-          )}
+          {/* Status/Featured Badge */}
+          <div className="absolute top-2 left-2 flex gap-1.5">
+            {property.isFeatured && (
+              <div className="px-2 py-0.5 bg-primary text-white text-[10px] font-semibold rounded shadow-sm">
+                Featured
+              </div>
+            )}
+            {statusBadge && (
+              <div className={`px-2 py-0.5 text-[10px] font-semibold rounded shadow-sm ${statusBadge.className}`}>
+                {statusBadge.text}
+              </div>
+            )}
+          </div>
         </div>
 
-        <CardContent className="p-4">
+        <CardContent className="p-3.5">
           {/* Price */}
           <div className="mb-2">
-            <span className="text-2xl font-bold text-primary">
+            <span className="text-xl font-bold text-primary">
               {property.currency} {property.price.toLocaleString()}
             </span>
-            <span className="text-sm text-muted-foreground ml-1">
+            <span className="text-xs text-muted-foreground ml-1">
               /{property.transactionType}
             </span>
           </div>
 
           {/* Title */}
-          <h3 className="font-semibold text-lg mb-2 line-clamp-1">
+          <h3 className="font-semibold text-base mb-1.5 line-clamp-1">
             {property.title}
           </h3>
 
           {/* Location */}
-          <div className="flex items-center text-sm text-muted-foreground mb-3">
-            <MapPin className="h-4 w-4 mr-1" />
+          <div className="flex items-center text-xs text-muted-foreground mb-2.5">
+            <MapPin className="h-3.5 w-3.5 mr-1" />
             <span className="line-clamp-1">{locationString}</span>
           </div>
 
           {/* Property Details */}
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            {property.bedrooms && (
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            {property.bedrooms != null && (
               <div className="flex items-center">
-                <Bed className="h-4 w-4 mr-1" />
+                <Bed className="h-3.5 w-3.5 mr-1" />
                 <span>{property.bedrooms}</span>
               </div>
             )}
-            {property.bathrooms && (
+            {property.bathrooms != null && (
               <div className="flex items-center">
-                <Bath className="h-4 w-4 mr-1" />
+                <Bath className="h-3.5 w-3.5 mr-1" />
                 <span>{property.bathrooms}</span>
               </div>
             )}
             {property.sizeSqm && (
               <div className="flex items-center">
-                <Square className="h-4 w-4 mr-1" />
+                <Square className="h-3.5 w-3.5 mr-1" />
                 <span>{property.sizeSqm}m²</span>
               </div>
             )}
@@ -153,11 +177,11 @@ export function PropertyCard({ property, onFavoriteChange }: PropertyCardProps) 
           {/* Lister name – clickable to public profile */}
           {property.listerId && (
             <div className="mt-2 pt-2 border-t border-border/50">
-              <span className="text-xs text-muted-foreground">Listed by </span>
+              <span className="text-[10px] text-muted-foreground">Listed by </span>
               <Link
                 href={`/listers/${property.listerId}`}
                 onClick={(e) => e.stopPropagation()}
-                className="text-xs font-medium text-primary hover:underline"
+                className="text-[10px] font-medium text-primary hover:underline"
               >
                 {property.lister?.profile?.name || property.lister?.profile?.companyName || "Lister"}
               </Link>
@@ -165,8 +189,8 @@ export function PropertyCard({ property, onFavoriteChange }: PropertyCardProps) 
           )}
         </CardContent>
 
-        <CardFooter className="p-4 pt-0">
-          <Button variant="outline" className="w-full">
+        <CardFooter className="p-3.5 pt-0">
+          <Button variant="outline" className="w-full text-xs h-8">
             View Details
           </Button>
         </CardFooter>

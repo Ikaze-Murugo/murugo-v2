@@ -33,18 +33,18 @@ export default function PropertiesPage() {
   };
 
   return (
-    <div className="min-h-screen py-8 px-4">
+    <div className="min-h-screen py-6 px-4 bg-[#f8f8f5] dark:bg-[#1a1a2e]">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Browse Properties</h1>
-          <p className="text-muted-foreground">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold mb-1.5">Browse Properties</h1>
+          <p className="text-muted-foreground text-sm">
             {pagination?.total || 0} properties available
           </p>
         </div>
 
         {/* Filters */}
-        <div className="mb-8">
+        <div className="mb-6">
           <PropertyFilters filters={filters} onFiltersChange={handleFiltersChange} />
         </div>
 
@@ -52,21 +52,21 @@ export default function PropertiesPage() {
         {isLoading && (
           <div className="text-center py-12">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" />
-            <p className="mt-4 text-muted-foreground">Loading properties...</p>
+            <p className="mt-4 text-muted-foreground text-sm">Loading properties...</p>
           </div>
         )}
 
         {/* Error State */}
         {error && (
           <div className="text-center py-12">
-            <p className="text-red-500">Failed to load properties. Please try again.</p>
+            <p className="text-red-500 text-sm">Failed to load properties. Please try again.</p>
           </div>
         )}
 
         {/* Properties Grid */}
         {!isLoading && !error && properties.length > 0 && (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
               {properties.map((property) => (
                 <PropertyCard key={property.id} property={property} />
               ))}
@@ -80,8 +80,9 @@ export default function PropertiesPage() {
                   size="sm"
                   onClick={() => handlePageChange(pagination.page - 1)}
                   disabled={pagination.page === 1}
+                  className="text-xs"
                 >
-                  <ChevronLeft className="h-4 w-4" />
+                  <ChevronLeft className="h-3.5 w-3.5" />
                   Previous
                 </Button>
 
@@ -100,7 +101,7 @@ export default function PropertiesPage() {
                         page === pagination.page + 2
                       ) {
                         return (
-                          <span key={page} className="px-2">
+                          <span key={page} className="px-2 text-xs text-muted-foreground">
                             ...
                           </span>
                         );
@@ -114,6 +115,7 @@ export default function PropertiesPage() {
                         variant={page === pagination.page ? "default" : "outline"}
                         size="sm"
                         onClick={() => handlePageChange(page)}
+                        className="text-xs min-w-[32px]"
                       >
                         {page}
                       </Button>
@@ -126,9 +128,10 @@ export default function PropertiesPage() {
                   size="sm"
                   onClick={() => handlePageChange(pagination.page + 1)}
                   disabled={pagination.page === pagination.totalPages}
+                  className="text-xs"
                 >
                   Next
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronRight className="h-3.5 w-3.5" />
                 </Button>
               </div>
             )}
@@ -138,10 +141,10 @@ export default function PropertiesPage() {
         {/* Empty State */}
         {!isLoading && !error && properties.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-muted-foreground text-lg mb-4">
+            <p className="text-muted-foreground text-sm mb-4">
               No properties found matching your criteria.
             </p>
-            <Button variant="outline" onClick={() => setFilters({ page: 1, limit: 12 })}>
+            <Button variant="outline" onClick={() => setFilters({ page: 1, limit: 12 })} size="sm" className="text-xs">
               Clear Filters
             </Button>
           </div>

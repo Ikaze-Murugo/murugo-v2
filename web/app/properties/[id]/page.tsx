@@ -67,6 +67,15 @@ const getAmenityIcon = (amenity: string) => {
   return Check;
 };
 
+// Status color mapping
+const getStatusColor = (status: string) => {
+  const lowerStatus = status.toLowerCase();
+  if (lowerStatus === "available") return "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400";
+  if (lowerStatus === "pending") return "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400";
+  if (lowerStatus === "sold" || lowerStatus === "rented") return "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400";
+  return "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400";
+};
+
 export default function PropertyDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -147,7 +156,7 @@ export default function PropertyDetailPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent" />
-          <p className="mt-4 text-muted-foreground">Loading property...</p>
+          <p className="mt-4 text-sm text-muted-foreground">Loading property...</p>
         </div>
       </div>
     );
@@ -157,7 +166,7 @@ export default function PropertyDetailPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <p className="text-red-500 mb-4">Failed to load property</p>
+          <p className="text-red-500 mb-4 text-sm">Failed to load property</p>
           <Button onClick={() => router.push("/properties")}>
             Back to Properties
           </Button>
@@ -172,148 +181,150 @@ export default function PropertyDetailPage() {
     : "Location TBD";
 
   return (
-    <div className="min-h-screen py-8 px-4 bg-gradient-to-b from-background to-muted/20">
+    <div className="min-h-screen py-6 px-4 bg-[#f8f8f5] dark:bg-[#1a1a2e]">
       <div className="max-w-7xl mx-auto">
         {/* Back Button */}
         <Button
           variant="ghost"
           onClick={() => router.push("/properties")}
-          className="mb-6 hover:bg-muted/80 transition-colors"
+          className="mb-4 text-sm hover:bg-muted/80 transition-colors"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Properties
         </Button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2 space-y-5">
             {/* Gallery */}
             <PropertyGallery images={images} title={property.title} />
 
             {/* Title and Price */}
-            <div className="bg-card rounded-2xl border shadow-lg p-6 md:p-8">
-              <div className="flex items-start justify-between mb-6">
+            <div className="bg-card rounded-xl border shadow-sm p-5">
+              <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
-                  <h1 className="text-3xl md:text-4xl font-bold mb-3 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                  <h1 className="text-2xl md:text-3xl font-bold mb-2 text-[#1a1a2e] dark:text-white">
                     {property.title}
                   </h1>
-                  <div className="flex items-center text-muted-foreground">
-                    <MapPin className="h-5 w-5 mr-2 text-primary" />
-                    <span className="text-base">{locationString}</span>
+                  <div className="flex items-center text-muted-foreground text-sm mb-2">
+                    <MapPin className="h-4 w-4 mr-1.5 text-primary" />
+                    <span>{locationString}</span>
                   </div>
+                  {/* Status Badge */}
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(property.status)}`}>
+                    {property.status}
+                  </span>
                 </div>
                 <Button 
                   variant="outline" 
                   size="icon" 
                   onClick={handleShare}
-                  className="hover:bg-primary hover:text-primary-foreground transition-colors"
+                  className="hover:bg-primary hover:text-primary-foreground transition-colors h-9 w-9"
                 >
                   <Share2 className="h-4 w-4" />
                 </Button>
               </div>
 
-              <div className="flex items-baseline gap-3 p-6 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
-                <span className="text-4xl md:text-5xl font-bold text-primary">
+              <div className="flex items-baseline gap-2 p-4 rounded-lg bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
+                <span className="text-3xl md:text-4xl font-bold text-primary">
                   {property.currency} {property.price.toLocaleString()}
                 </span>
-                <span className="text-lg md:text-xl text-muted-foreground font-medium">
+                <span className="text-base text-muted-foreground font-medium">
                   / {property.transactionType}
                 </span>
               </div>
             </div>
 
             {/* Quick stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {property.bedrooms != null && (
-                <div className="group flex items-center gap-3 p-5 rounded-xl border bg-card shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                  <div className="p-3 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 group-hover:from-primary/30 group-hover:to-primary/20 transition-colors">
-                    <Bed className="h-6 w-6 text-primary" />
+                <div className="group flex items-center gap-2.5 p-3.5 rounded-lg border bg-card shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5">
+                  <div className="p-2 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 group-hover:from-primary/30 group-hover:to-primary/20 transition-colors">
+                    <Bed className="h-4 w-4 text-primary" />
                   </div>
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Bedrooms</p>
-                    <p className="text-2xl font-bold">{property.bedrooms}</p>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Bedrooms</p>
+                    <p className="text-xl font-bold">{property.bedrooms}</p>
                   </div>
                 </div>
               )}
               {property.bathrooms != null && (
-                <div className="group flex items-center gap-3 p-5 rounded-xl border bg-card shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                  <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500/20 to-blue-500/10 group-hover:from-blue-500/30 group-hover:to-blue-500/20 transition-colors">
-                    <Bath className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                <div className="group flex items-center gap-2.5 p-3.5 rounded-lg border bg-card shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5">
+                  <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500/20 to-blue-500/10 group-hover:from-blue-500/30 group-hover:to-blue-500/20 transition-colors">
+                    <Bath className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Bathrooms</p>
-                    <p className="text-2xl font-bold">{property.bathrooms}</p>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Bathrooms</p>
+                    <p className="text-xl font-bold">{property.bathrooms}</p>
                   </div>
                 </div>
               )}
               {property.sizeSqm != null && property.sizeSqm > 0 && (
-                <div className="group flex items-center gap-3 p-5 rounded-xl border bg-card shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                  <div className="p-3 rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-500/10 group-hover:from-emerald-500/30 group-hover:to-emerald-500/20 transition-colors">
-                    <Square className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+                <div className="group flex items-center gap-2.5 p-3.5 rounded-lg border bg-card shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5">
+                  <div className="p-2 rounded-lg bg-gradient-to-br from-emerald-500/20 to-emerald-500/10 group-hover:from-emerald-500/30 group-hover:to-emerald-500/20 transition-colors">
+                    <Square className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                   </div>
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Size</p>
-                    <p className="text-2xl font-bold">{property.sizeSqm} m²</p>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Size</p>
+                    <p className="text-xl font-bold">{property.sizeSqm} m²</p>
                   </div>
                 </div>
               )}
-              <div className="group flex items-center gap-3 p-5 rounded-xl border bg-card shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                <div className="p-3 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-500/10 group-hover:from-amber-500/30 group-hover:to-amber-500/20 transition-colors">
-                  <Eye className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+              <div className="group flex items-center gap-2.5 p-3.5 rounded-lg border bg-card shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5">
+                <div className="p-2 rounded-lg bg-gradient-to-br from-amber-500/20 to-amber-500/10 group-hover:from-amber-500/30 group-hover:to-amber-500/20 transition-colors">
+                  <Eye className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                 </div>
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Views</p>
-                  <p className="text-2xl font-bold">{property.viewsCount ?? 0}</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Views</p>
+                  <p className="text-xl font-bold">{property.viewsCount ?? 0}</p>
                 </div>
               </div>
             </div>
 
             {/* Description */}
-            <section className="rounded-2xl border bg-card shadow-lg overflow-hidden">
-              <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-6 md:p-8 border-b">
-                <h2 className="text-2xl font-bold flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/20">
-                    <MessageSquare className="h-6 w-6 text-primary" />
+            <section className="rounded-xl border bg-card shadow-sm overflow-hidden">
+              <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-4 border-b">
+                <h2 className="text-lg font-bold flex items-center gap-2.5">
+                  <div className="p-1.5 rounded-lg bg-primary/20">
+                    <MessageSquare className="h-4 w-4 text-primary" />
                   </div>
                   About This Property
                 </h2>
               </div>
-              <div className="p-6 md:p-8">
-                <div className="prose prose-lg dark:prose-invert max-w-none">
-                  <p className="text-foreground/90 leading-relaxed whitespace-pre-line text-base md:text-lg">
-                    {property.description}
-                  </p>
-                </div>
+              <div className="p-5">
+                <p className="text-[#1a1a2e]/80 dark:text-white/80 leading-relaxed whitespace-pre-line text-sm">
+                  {property.description}
+                </p>
               </div>
             </section>
 
             {/* Amenities */}
             {property.amenities && property.amenities.length > 0 && (
-              <section className="rounded-2xl border bg-card shadow-lg overflow-hidden">
-                <div className="bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-transparent p-6 md:p-8 border-b">
-                  <h2 className="text-2xl font-bold flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-emerald-500/20">
-                      <Star className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+              <section className="rounded-xl border bg-card shadow-sm overflow-hidden">
+                <div className="bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-transparent p-4 border-b">
+                  <h2 className="text-lg font-bold flex items-center gap-2.5">
+                    <div className="p-1.5 rounded-lg bg-emerald-500/20">
+                      <Star className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                     </div>
                     Amenities & Features
                   </h2>
                 </div>
-                <div className="p-6 md:p-8">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="p-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
                     {property.amenities.map((amenity, index) => {
                       const Icon = getAmenityIcon(amenity);
                       return (
                         <div
                           key={index}
-                          className="group flex items-center gap-3 p-4 rounded-xl bg-gradient-to-br from-muted/50 to-muted/30 border border-muted hover:border-primary/50 hover:from-primary/10 hover:to-primary/5 transition-all duration-300 hover:shadow-md"
+                          className="group flex items-center gap-2.5 p-3 rounded-lg bg-gradient-to-br from-muted/50 to-muted/30 border border-muted hover:border-primary/50 hover:from-primary/10 hover:to-primary/5 transition-all duration-300 hover:shadow-sm"
                         >
-                          <div className="p-2 rounded-lg bg-background/80 group-hover:bg-primary/20 transition-colors">
-                            <Icon className="h-5 w-5 text-primary" />
+                          <div className="p-1.5 rounded-md bg-background/80 group-hover:bg-primary/20 transition-colors">
+                            <Icon className="h-3.5 w-3.5 text-primary" />
                           </div>
-                          <span className="font-medium text-foreground capitalize flex-1">
+                          <span className="font-medium text-foreground capitalize flex-1 text-sm">
                             {amenity}
                           </span>
-                          <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
                       );
                     })}
@@ -323,56 +334,56 @@ export default function PropertyDetailPage() {
             )}
 
             {/* Property Details */}
-            <section className="rounded-2xl border bg-card shadow-lg overflow-hidden">
-              <div className="bg-gradient-to-r from-blue-500/10 via-blue-500/5 to-transparent p-6 md:p-8 border-b">
-                <h2 className="text-2xl font-bold flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-blue-500/20">
-                    <Home className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            <section className="rounded-xl border bg-card shadow-sm overflow-hidden">
+              <div className="bg-gradient-to-r from-blue-500/10 via-blue-500/5 to-transparent p-4 border-b">
+                <h2 className="text-lg font-bold flex items-center gap-2.5">
+                  <div className="p-1.5 rounded-lg bg-blue-500/20">
+                    <Home className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                   </div>
                   Property Details
                 </h2>
               </div>
-              <div className="p-6 md:p-8">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="group flex items-center justify-between p-5 rounded-xl bg-gradient-to-br from-muted/50 to-muted/30 border hover:border-primary/50 hover:shadow-md transition-all duration-300">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg bg-background/80">
-                        <Building className="h-5 w-5 text-primary" />
+              <div className="p-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="group flex items-center justify-between p-3.5 rounded-lg bg-gradient-to-br from-muted/50 to-muted/30 border hover:border-primary/50 hover:shadow-sm transition-all duration-300">
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-1.5 rounded-md bg-background/80">
+                        <Building className="h-4 w-4 text-primary" />
                       </div>
-                      <span className="text-sm font-medium text-muted-foreground">Property Type</span>
+                      <span className="text-xs font-medium text-muted-foreground">Property Type</span>
                     </div>
-                    <span className="font-bold text-foreground capitalize">{property.propertyType}</span>
+                    <span className="font-semibold text-foreground capitalize text-sm">{property.propertyType}</span>
                   </div>
                   
-                  <div className="group flex items-center justify-between p-5 rounded-xl bg-gradient-to-br from-muted/50 to-muted/30 border hover:border-primary/50 hover:shadow-md transition-all duration-300">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg bg-background/80">
-                        <TrendingUp className="h-5 w-5 text-primary" />
+                  <div className="group flex items-center justify-between p-3.5 rounded-lg bg-gradient-to-br from-muted/50 to-muted/30 border hover:border-primary/50 hover:shadow-sm transition-all duration-300">
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-1.5 rounded-md bg-background/80">
+                        <TrendingUp className="h-4 w-4 text-primary" />
                       </div>
-                      <span className="text-sm font-medium text-muted-foreground">Transaction</span>
+                      <span className="text-xs font-medium text-muted-foreground">Transaction</span>
                     </div>
-                    <span className="font-bold text-foreground capitalize">{property.transactionType}</span>
+                    <span className="font-semibold text-foreground capitalize text-sm">{property.transactionType}</span>
                   </div>
                   
-                  <div className="group flex items-center justify-between p-5 rounded-xl bg-gradient-to-br from-muted/50 to-muted/30 border hover:border-primary/50 hover:shadow-md transition-all duration-300">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg bg-background/80">
-                        <Tag className="h-5 w-5 text-primary" />
+                  <div className="group flex items-center justify-between p-3.5 rounded-lg bg-gradient-to-br from-muted/50 to-muted/30 border hover:border-primary/50 hover:shadow-sm transition-all duration-300">
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-1.5 rounded-md bg-background/80">
+                        <Tag className="h-4 w-4 text-primary" />
                       </div>
-                      <span className="text-sm font-medium text-muted-foreground">Status</span>
+                      <span className="text-xs font-medium text-muted-foreground">Status</span>
                     </div>
-                    <span className="font-bold text-foreground capitalize">{property.status}</span>
+                    <span className="font-semibold text-foreground capitalize text-sm">{property.status}</span>
                   </div>
                   
                   {property.yearBuilt != null && property.yearBuilt > 0 && (
-                    <div className="group flex items-center justify-between p-5 rounded-xl bg-gradient-to-br from-muted/50 to-muted/30 border hover:border-primary/50 hover:shadow-md transition-all duration-300">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-background/80">
-                          <Calendar className="h-5 w-5 text-primary" />
+                    <div className="group flex items-center justify-between p-3.5 rounded-lg bg-gradient-to-br from-muted/50 to-muted/30 border hover:border-primary/50 hover:shadow-sm transition-all duration-300">
+                      <div className="flex items-center gap-2.5">
+                        <div className="p-1.5 rounded-md bg-background/80">
+                          <Calendar className="h-4 w-4 text-primary" />
                         </div>
-                        <span className="text-sm font-medium text-muted-foreground">Year Built</span>
+                        <span className="text-xs font-medium text-muted-foreground">Year Built</span>
                       </div>
-                      <span className="font-bold text-foreground">{property.yearBuilt}</span>
+                      <span className="font-semibold text-foreground text-sm">{property.yearBuilt}</span>
                     </div>
                   )}
                 </div>
@@ -380,45 +391,45 @@ export default function PropertyDetailPage() {
             </section>
 
             {/* Reviews */}
-            <section className="rounded-2xl border bg-card shadow-lg overflow-hidden">
-              <div className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent p-6 md:p-8 border-b">
-                <h2 className="text-2xl font-bold flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-amber-500/20">
-                    <MessageSquare className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+            <section className="rounded-xl border bg-card shadow-sm overflow-hidden">
+              <div className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent p-4 border-b">
+                <h2 className="text-lg font-bold flex items-center gap-2.5">
+                  <div className="p-1.5 rounded-lg bg-amber-500/20">
+                    <MessageSquare className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                   </div>
                   Reviews {reviews.length > 0 && `(${reviews.length})`}
                 </h2>
               </div>
-              <div className="p-6 md:p-8">
+              <div className="p-5">
                 {reviewsLoading ? (
-                  <p className="text-muted-foreground">Loading reviews...</p>
+                  <p className="text-muted-foreground text-sm">Loading reviews...</p>
                 ) : reviews.length === 0 ? (
-                  <div className="text-center py-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted/50 mb-4">
-                      <MessageSquare className="h-8 w-8 text-muted-foreground" />
+                  <div className="text-center py-6">
+                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-muted/50 mb-3">
+                      <MessageSquare className="h-6 w-6 text-muted-foreground" />
                     </div>
-                    <p className="text-muted-foreground">No reviews yet. Be the first to leave a review.</p>
+                    <p className="text-muted-foreground text-sm">No reviews yet. Be the first to leave a review.</p>
                   </div>
                 ) : (
-                  <ul className="space-y-4">
+                  <ul className="space-y-3">
                     {(reviews as Review[]).map((r) => {
                       const reviewer = (r as Review & { reviewer?: { profile?: { name?: string }; email?: string } }).reviewer ?? r.user;
                       const name = reviewer?.profile?.name ?? (reviewer as { email?: string })?.email ?? "Anonymous";
                       return (
-                        <li key={r.id} className="p-5 border rounded-xl bg-gradient-to-br from-muted/30 to-muted/10 hover:shadow-md transition-shadow">
-                          <div className="flex items-center justify-between gap-2 mb-3">
-                            <span className="font-semibold text-lg">{name}</span>
-                            <div className="flex items-center gap-1">
+                        <li key={r.id} className="p-4 border rounded-lg bg-gradient-to-br from-muted/30 to-muted/10 hover:shadow-sm transition-shadow">
+                          <div className="flex items-center justify-between gap-2 mb-2">
+                            <span className="font-semibold text-sm">{name}</span>
+                            <div className="flex items-center gap-0.5">
                               {[1, 2, 3, 4, 5].map((i) => (
                                 <Star
                                   key={i}
-                                  className={`h-5 w-5 ${i <= r.rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground"}`}
+                                  className={`h-3.5 w-3.5 ${i <= r.rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground"}`}
                                 />
                               ))}
                             </div>
                           </div>
-                          {r.comment && <p className="text-sm text-foreground/80 leading-relaxed mb-2">{r.comment}</p>}
-                          <p className="text-xs text-muted-foreground">
+                          {r.comment && <p className="text-xs text-foreground/80 leading-relaxed mb-1.5">{r.comment}</p>}
+                          <p className="text-[10px] text-muted-foreground">
                             {r.createdAt ? new Date(r.createdAt).toLocaleDateString() : ""}
                           </p>
                         </li>
@@ -428,30 +439,30 @@ export default function PropertyDetailPage() {
                 )}
 
                 {isAuthenticated && user?.id !== property.listerId && property.listerId && (
-                  <div className="mt-6 p-6 border rounded-xl bg-gradient-to-br from-background to-muted/20">
-                    <h3 className="font-bold text-lg mb-4">Leave a Review</h3>
-                    <div className="space-y-4">
+                  <div className="mt-5 p-4 border rounded-lg bg-gradient-to-br from-background to-muted/20">
+                    <h3 className="font-semibold text-sm mb-3">Leave a Review</h3>
+                    <div className="space-y-3">
                       <div>
-                        <label className="block text-sm font-semibold mb-2">Rating</label>
-                        <div className="flex gap-2">
+                        <label className="block text-xs font-semibold mb-1.5">Rating</label>
+                        <div className="flex gap-1.5">
                           {[1, 2, 3, 4, 5].map((i) => (
                             <button
                               key={i}
                               type="button"
                               onClick={() => setReviewRating(i)}
-                              className="p-2 rounded-lg hover:bg-muted transition-colors"
+                              className="p-1 rounded-lg hover:bg-muted transition-colors"
                             >
                               <Star
-                                className={`h-8 w-8 transition-colors ${i <= reviewRating ? "fill-amber-400 text-amber-400" : "text-muted-foreground hover:text-amber-300"}`}
+                                className={`h-6 w-6 transition-colors ${i <= reviewRating ? "fill-amber-400 text-amber-400" : "text-muted-foreground hover:text-amber-300"}`}
                               />
                             </button>
                           ))}
                         </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-semibold mb-2">Comment (optional)</label>
+                        <label className="block text-xs font-semibold mb-1.5">Comment (optional)</label>
                         <textarea
-                          className="w-full px-4 py-3 border rounded-xl min-h-[100px] bg-background focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                          className="w-full px-3 py-2 border rounded-lg min-h-[80px] bg-background focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-sm"
                           placeholder="Share your experience..."
                           value={reviewComment}
                           onChange={(e) => setReviewComment(e.target.value)}
@@ -462,7 +473,8 @@ export default function PropertyDetailPage() {
                         onClick={() =>
                           createReviewMutation.mutate({ rating: reviewRating, comment: reviewComment })
                         }
-                        className="w-full sm:w-auto"
+                        className="w-full sm:w-auto text-sm"
+                        size="sm"
                       >
                         {createReviewMutation.isPending ? "Submitting..." : "Submit Review"}
                       </Button>
@@ -475,30 +487,30 @@ export default function PropertyDetailPage() {
 
           {/* Sidebar */}
           <div className="lg:col-span-1">
-            <div className="sticky top-8 space-y-6">
+            <div className="sticky top-6 space-y-4">
               {/* Lister link – visible for all; leads to modern lister page with public info & properties */}
               {property.listerId && (
-                <div className="p-6 rounded-2xl border bg-card shadow-lg">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                <div className="p-4 rounded-xl border bg-card shadow-sm">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
                     Listed by
                   </p>
                   <Link
                     href={`/listers/${property.listerId}`}
-                    className="text-lg font-bold text-primary hover:underline block mb-2"
+                    className="text-base font-bold text-primary hover:underline block mb-1.5"
                   >
                     {property.lister?.profile?.name ||
                       property.lister?.profile?.companyName ||
                       "View lister profile"}
                   </Link>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     View their public profile, lister type, and all listings.
                   </p>
                 </div>
               )}
 
               {/* Contact Card - only show contact info when authenticated */}
-              <div className="p-6 border rounded-2xl bg-card shadow-lg">
-                <h3 className="text-xl font-bold mb-4">Contact Property Owner</h3>
+              <div className="p-5 border rounded-xl bg-card shadow-sm">
+                <h3 className="text-base font-bold mb-3">Contact Property Owner</h3>
                 {isAuthenticated ? (
                   <ContactButton
                     property={property}
@@ -509,18 +521,18 @@ export default function PropertyDetailPage() {
                     }}
                   />
                 ) : (
-                  <div className="space-y-4">
-                    <p className="text-muted-foreground text-sm">
+                  <div className="space-y-3">
+                    <p className="text-muted-foreground text-xs">
                       Sign up or log in to view contact details and get in touch with the property owner.
                     </p>
                     <div className="flex flex-col gap-2">
                       <Link href="/register?role=seeker">
-                        <Button className="w-full" size="lg">
+                        <Button className="w-full text-sm" size="sm">
                           Sign up to contact lister
                         </Button>
                       </Link>
                       <Link href="/login">
-                        <Button variant="outline" className="w-full" size="lg">
+                        <Button variant="outline" className="w-full text-sm" size="sm">
                           Log in to contact
                         </Button>
                       </Link>
@@ -531,12 +543,12 @@ export default function PropertyDetailPage() {
 
               {/* Map Placeholder */}
               {property.location?.latitude != null && property.location?.longitude != null && (
-                <div className="p-6 border rounded-2xl bg-card shadow-lg">
-                  <h3 className="text-xl font-bold mb-4">Location</h3>
-                  <div className="h-64 bg-muted rounded-xl flex items-center justify-center">
-                    <p className="text-muted-foreground">Map integration coming soon</p>
+                <div className="p-5 border rounded-xl bg-card shadow-sm">
+                  <h3 className="text-base font-bold mb-3">Location</h3>
+                  <div className="h-48 bg-muted rounded-lg flex items-center justify-center">
+                    <p className="text-muted-foreground text-xs">Map integration coming soon</p>
                   </div>
-                  <p className="mt-4 text-sm text-muted-foreground">
+                  <p className="mt-3 text-xs text-muted-foreground">
                     {locationString}
                   </p>
                 </div>
