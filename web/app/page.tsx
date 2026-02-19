@@ -62,7 +62,7 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#f8f8f5] dark:bg-[#1a1a2e]">
+    <div className="min-h-screen bg-[#f8f8f5]">
       {/* Hero: left = words + app badges, right = phone; responsive stack */}
       <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-background py-10 md:py-16 px-4">
         <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-8 lg:gap-14">
@@ -74,7 +74,7 @@ export default function HomePage() {
               Discover houses, apartments, and commercial properties across Kigali and beyond.
             </p>
             <div className="max-w-xl mx-auto lg:mx-0 mb-5">
-              <div className="flex gap-2 bg-background/80 dark:bg-background/90 rounded-xl shadow-lg border p-2">
+              <div className="flex gap-2 bg-background/80 rounded-xl shadow-lg border p-2">
                 <input
                   type="text"
                   placeholder="Search by location, property type..."
@@ -334,7 +334,7 @@ export default function HomePage() {
 
       {/* CTA */}
       <section className="py-12 md:py-16 px-4">
-        <div className="max-w-4xl mx-auto text-center rounded-xl bg-primary/10 dark:bg-primary/20 border border-primary/20 p-6 md:p-10">
+        <div className="max-w-4xl mx-auto text-center rounded-xl bg-primary/10 border border-primary/20 p-6 md:p-10">
           <h2 className="text-2xl md:text-3xl font-bold mb-3">Have a Property to List?</h2>
           <p className="text-base text-muted-foreground mb-6 max-w-2xl mx-auto">
             Join thousands of property owners and reach potential buyers and renters across Rwanda.

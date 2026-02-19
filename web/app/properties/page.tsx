@@ -33,7 +33,7 @@ export default function PropertiesPage() {
   };
 
   return (
-    <div className="min-h-screen py-6 px-4 bg-[#f8f8f5] dark:bg-[#1a1a2e]">
+    <div className="min-h-screen py-6 px-4 bg-[#f8f8f5]">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">

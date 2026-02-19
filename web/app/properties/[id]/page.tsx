@@ -70,10 +70,10 @@ const getAmenityIcon = (amenity: string) => {
 // Status color mapping
 const getStatusColor = (status: string) => {
   const lowerStatus = status.toLowerCase();
-  if (lowerStatus === "available") return "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400";
-  if (lowerStatus === "pending") return "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400";
-  if (lowerStatus === "sold" || lowerStatus === "rented") return "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400";
-  return "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400";
+  if (lowerStatus === "available") return "bg-emerald-100 text-emerald-700";
+  if (lowerStatus === "pending") return "bg-amber-100 text-amber-700";
+  if (lowerStatus === "sold" || lowerStatus === "rented") return "bg-slate-100 text-slate-700";
+  return "bg-slate-100 text-slate-700";
 };
 
 export default function PropertyDetailPage() {
@@ -181,7 +181,7 @@ export default function PropertyDetailPage() {
     : "Location TBD";
 
   return (
-    <div className="min-h-screen py-6 px-4 bg-[#f8f8f5] dark:bg-[#1a1a2e]">
+    <div className="min-h-screen py-6 px-4 bg-[#f8f8f5]">
       <div className="max-w-7xl mx-auto">
         {/* Back Button */}
         <Button
@@ -203,7 +203,7 @@ export default function PropertyDetailPage() {
             <div className="bg-card rounded-xl border shadow-sm p-5">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
-                  <h1 className="text-2xl md:text-3xl font-bold mb-2 text-[#1a1a2e] dark:text-white">
+                  <h1 className="text-2xl md:text-3xl font-bold mb-2 text-[#1a1a2e]">
                     {property.title}
                   </h1>
                   <div className="flex items-center text-muted-foreground text-sm mb-2">
@@ -251,7 +251,7 @@ export default function PropertyDetailPage() {
               {property.bathrooms != null && (
                 <div className="group flex items-center gap-2.5 p-3.5 rounded-lg border bg-card shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5">
                   <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500/20 to-blue-500/10 group-hover:from-blue-500/30 group-hover:to-blue-500/20 transition-colors">
-                    <Bath className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    <Bath className="h-4 w-4 text-blue-600" />
                   </div>
                   <div>
                     <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Bathrooms</p>
@@ -262,7 +262,7 @@ export default function PropertyDetailPage() {
               {property.sizeSqm != null && property.sizeSqm > 0 && (
                 <div className="group flex items-center gap-2.5 p-3.5 rounded-lg border bg-card shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5">
                   <div className="p-2 rounded-lg bg-gradient-to-br from-emerald-500/20 to-emerald-500/10 group-hover:from-emerald-500/30 group-hover:to-emerald-500/20 transition-colors">
-                    <Square className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                    <Square className="h-4 w-4 text-emerald-600" />
                   </div>
                   <div>
                     <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Size</p>
@@ -272,7 +272,7 @@ export default function PropertyDetailPage() {
               )}
               <div className="group flex items-center gap-2.5 p-3.5 rounded-lg border bg-card shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5">
                 <div className="p-2 rounded-lg bg-gradient-to-br from-amber-500/20 to-amber-500/10 group-hover:from-amber-500/30 group-hover:to-amber-500/20 transition-colors">
-                  <Eye className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                  <Eye className="h-4 w-4 text-amber-600" />
                 </div>
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Views</p>
@@ -292,7 +292,7 @@ export default function PropertyDetailPage() {
                 </h2>
               </div>
               <div className="p-5">
-                <p className="text-[#1a1a2e]/80 dark:text-white/80 leading-relaxed whitespace-pre-line text-sm">
+                <p className="text-[#1a1a2e]/80 leading-relaxed whitespace-pre-line text-sm">
                   {property.description}
                 </p>
               </div>
@@ -304,7 +304,7 @@ export default function PropertyDetailPage() {
                 <div className="bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-transparent p-4 border-b">
                   <h2 className="text-lg font-bold flex items-center gap-2.5">
                     <div className="p-1.5 rounded-lg bg-emerald-500/20">
-                      <Star className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                      <Star className="h-4 w-4 text-emerald-600" />
                     </div>
                     Amenities & Features
                   </h2>
@@ -324,7 +324,7 @@ export default function PropertyDetailPage() {
                           <span className="font-medium text-foreground capitalize flex-1 text-sm">
                             {amenity}
                           </span>
-                          <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          <Check className="h-3.5 w-3.5 text-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
                       );
                     })}
@@ -338,7 +338,7 @@ export default function PropertyDetailPage() {
               <div className="bg-gradient-to-r from-blue-500/10 via-blue-500/5 to-transparent p-4 border-b">
                 <h2 className="text-lg font-bold flex items-center gap-2.5">
                   <div className="p-1.5 rounded-lg bg-blue-500/20">
-                    <Home className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    <Home className="h-4 w-4 text-blue-600" />
                   </div>
                   Property Details
                 </h2>
@@ -395,7 +395,7 @@ export default function PropertyDetailPage() {
               <div className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent p-4 border-b">
                 <h2 className="text-lg font-bold flex items-center gap-2.5">
                   <div className="p-1.5 rounded-lg bg-amber-500/20">
-                    <MessageSquare className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                    <MessageSquare className="h-4 w-4 text-amber-600" />
                   </div>
                   Reviews {reviews.length > 0 && `(${reviews.length})`}
                 </h2>
