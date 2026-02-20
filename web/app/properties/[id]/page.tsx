@@ -4,10 +4,11 @@ import { useState } from "react";
 import { PropertyGallery } from "@/components/property/property-gallery";
 import { ContactButton } from "@/components/property/contact-button";
 import { Button } from "@/components/ui/button";
-import { propertyApi, reviewApi } from "@/lib/api/endpoints";
+import { propertyApi, reviewApi, favoriteApi } from "@/lib/api/endpoints";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
   MapPin,
   Bed,
@@ -33,10 +34,19 @@ import {
   Trees,
   Building,
   Sofa,
+  Heart,
+  Send,
 } from "lucide-react";
 import { toast } from "@/lib/hooks/use-toast";
 import { useAuth } from "@/lib/hooks/use-auth";
 import type { Review } from "@/lib/types";
+import { ProfileType } from "@/lib/types";
+
+const PROFILE_TYPE_LABELS: Record<string, string> = {
+  [ProfileType.INDIVIDUAL]: "Individual",
+  [ProfileType.COMMISSIONER]: "Commissioner",
+  [ProfileType.COMPANY]: "Company",
+};
 
 // Amenity icon mapping for better visual representation
 const amenityIcons: Record<string, any> = {
@@ -76,17 +86,80 @@ const getStatusColor = (status: string) => {
   return "bg-slate-100 text-slate-700";
 };
 
+const DESCRIPTION_TRUNCATE_LENGTH = 120;
+
 export default function PropertyDetailPage() {
   const params = useParams();
   const router = useRouter();
   const propertyId = params.id as string;
   const { user, isAuthenticated } = useAuth();
+  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
 
   const queryClient = useQueryClient();
   const { data: property, isLoading, error } = useQuery({
     queryKey: ["property", propertyId],
     queryFn: () => propertyApi.getById(propertyId),
   });
+
+  const { data: isFavorite = false } = useQuery({
+    queryKey: ["favorite-check", propertyId],
+    queryFn: () => favoriteApi.check(propertyId),
+    enabled: isAuthenticated && !!propertyId,
+  });
+
+  const addFavoriteMutation = useMutation({
+    mutationFn: () => favoriteApi.add(propertyId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["favorite-check", propertyId] });
+      queryClient.invalidateQueries({ queryKey: ["favorites"] });
+      toast({ title: "Added to favorites" });
+    },
+    onError: () => {
+      toast({ title: "Failed to add to favorites", variant: "destructive" });
+    },
+  });
+
+  const removeFavoriteMutation = useMutation({
+    mutationFn: () => favoriteApi.remove(propertyId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["favorite-check", propertyId] });
+      queryClient.invalidateQueries({ queryKey: ["favorites"] });
+      toast({ title: "Removed from favorites" });
+    },
+    onError: () => {
+      toast({ title: "Failed to remove from favorites", variant: "destructive" });
+    },
+  });
+
+  const handleFavoriteClick = () => {
+    if (!isAuthenticated) {
+      toast({ title: "Sign in to save favorites", variant: "destructive" });
+      return;
+    }
+    if (isFavorite) removeFavoriteMutation.mutate();
+    else addFavoriteMutation.mutate();
+  };
+
+  const handleSendClick = () => {
+    if (!isAuthenticated) {
+      toast({ title: "Sign in to contact the owner", variant: "destructive" });
+      return;
+    }
+    const phone = property?.lister?.phone || property?.lister?.whatsappNumber;
+    if (!phone) {
+      toast({ title: "Contact number not available", variant: "destructive" });
+      return;
+    }
+    const clean = String(phone).replace(/\D/g, "");
+    const wa = clean.startsWith("250") ? clean : `250${clean}`;
+    const message = encodeURIComponent(
+      `Hi, I'm interested in your property: ${property?.title}\n` +
+      `Location: ${property?.location?.sector}, ${property?.location?.district}\n` +
+      `Price: ${property?.currency} ${property?.price?.toLocaleString()}\n` +
+      `Property ID: ${property?.id}`
+    );
+    window.open(`https://wa.me/${wa}?text=${message}`, "_blank");
+  };
 
   const { data: reviews = [], isLoading: reviewsLoading } = useQuery({
     queryKey: ["reviews", propertyId],
@@ -180,9 +253,17 @@ export default function PropertyDetailPage() {
     ? [property.location.sector, property.location.district].filter(Boolean).join(", ") || "Location TBD"
     : "Location TBD";
 
+  const listerName = property.lister?.profile?.companyName || property.lister?.profile?.name || property.lister?.email || "Property Owner";
+  const profileTypeLabel = property.lister?.profileType ? PROFILE_TYPE_LABELS[property.lister.profileType] ?? property.lister.profileType : null;
+  const listerAvatarUrl = property.lister?.profile?.avatarUrl;
+  const listerInitials = listerName.split(/\s+/).map((s) => s[0]).join("").toUpperCase().slice(0, 2);
+  const description = property.description || "";
+  const needsTruncate = description.length > DESCRIPTION_TRUNCATE_LENGTH;
+  const showDescription = descriptionExpanded || !needsTruncate ? description : description.slice(0, DESCRIPTION_TRUNCATE_LENGTH) + "...";
+
   return (
-    <div className="min-h-screen py-6 px-4 bg-[#f8f8f5]">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen py-6 px-4 bg-[#f8f8f5] pb-24">
+      <div className="max-w-2xl mx-auto">
         {/* Back Button */}
         <Button
           variant="ghost"
@@ -193,38 +274,63 @@ export default function PropertyDetailPage() {
           Back to Properties
         </Button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-5">
-            {/* Gallery */}
-            <PropertyGallery images={images} title={property.title} />
-
-            {/* Title and Price */}
-            <div className="bg-card rounded-xl border shadow-sm p-5">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <h1 className="text-2xl md:text-3xl font-bold mb-2 text-[#1a1a2e]">
-                    {property.title}
-                  </h1>
-                  <div className="flex items-center text-muted-foreground text-sm mb-2">
-                    <MapPin className="h-4 w-4 mr-1.5 text-primary" />
-                    <span>{locationString}</span>
+        {/* 1. Profile header – lister avatar, name, title */}
+        {property.listerId && (
+          <div className="flex items-center gap-3 px-1 mb-4">
+            <Link href={`/listers/${property.listerId}`} className="flex items-center gap-3 flex-1 min-w-0">
+              <div className="relative h-12 w-12 rounded-full overflow-hidden bg-muted flex-shrink-0">
+                {listerAvatarUrl ? (
+                  <Image src={listerAvatarUrl} alt={listerName} fill className="object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-primary/20 text-primary font-semibold text-lg">
+                    {listerInitials}
                   </div>
-                  {/* Status Badge */}
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(property.status)}`}>
-                    {property.status}
-                  </span>
-                </div>
-                <Button 
-                  variant="outline" 
-                  size="icon" 
-                  onClick={handleShare}
-                  className="hover:bg-primary hover:text-primary-foreground transition-colors h-9 w-9"
-                >
-                  <Share2 className="h-4 w-4" />
-                </Button>
+                )}
               </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-foreground truncate">{listerName}</p>
+                {profileTypeLabel && (
+                  <p className="text-sm text-muted-foreground">{profileTypeLabel}</p>
+                )}
+              </div>
+            </Link>
+          </div>
+        )}
 
+        {/* 2. Image carousel */}
+        <PropertyGallery images={images} title={property.title} />
+
+        {/* 3. Expandable description */}
+        {description && (
+          <div className="mt-4 bg-card rounded-xl border shadow-sm p-4">
+            <button
+              type="button"
+              onClick={() => setDescriptionExpanded((e) => !e)}
+              className="text-left w-full"
+            >
+              <p className="text-[#1a1a2e]/80 leading-relaxed whitespace-pre-line text-sm">
+                {showDescription}
+              </p>
+              {needsTruncate && (
+                <span className="text-sm text-primary font-medium mt-1 inline-block">
+                  {descriptionExpanded ? "Show less" : "more..."}
+                </span>
+              )}
+            </button>
+          </div>
+        )}
+
+        {/* 4. Details – price, quick stats, amenities, etc. */}
+        <div className="mt-4 space-y-5">
+            {/* Price and Location */}
+            <div className="bg-card rounded-xl border shadow-sm p-5">
+              <div className="flex items-center text-muted-foreground text-sm mb-3">
+                <MapPin className="h-4 w-4 mr-1.5 text-primary" />
+                <span>{locationString}</span>
+              </div>
+              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mb-3 ${getStatusColor(property.status)}`}>
+                {property.status}
+              </span>
               <div className="flex items-baseline gap-2 p-4 rounded-lg bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
                 <span className="text-3xl md:text-4xl font-bold text-primary">
                   {property.currency} {property.price.toLocaleString()}
@@ -236,7 +342,7 @@ export default function PropertyDetailPage() {
             </div>
 
             {/* Quick stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 -mt-2">
               {property.bedrooms != null && (
                 <div className="group flex items-center gap-2.5 p-3.5 rounded-lg border bg-card shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5">
                   <div className="p-2 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 group-hover:from-primary/30 group-hover:to-primary/20 transition-colors">
@@ -280,23 +386,6 @@ export default function PropertyDetailPage() {
                 </div>
               </div>
             </div>
-
-            {/* Description */}
-            <section className="rounded-xl border bg-card shadow-sm overflow-hidden">
-              <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-4 border-b">
-                <h2 className="text-lg font-bold flex items-center gap-2.5">
-                  <div className="p-1.5 rounded-lg bg-primary/20">
-                    <MessageSquare className="h-4 w-4 text-primary" />
-                  </div>
-                  About This Property
-                </h2>
-              </div>
-              <div className="p-5">
-                <p className="text-[#1a1a2e]/80 leading-relaxed whitespace-pre-line text-sm">
-                  {property.description}
-                </p>
-              </div>
-            </section>
 
             {/* Amenities */}
             {property.amenities && property.amenities.length > 0 && (
@@ -483,77 +572,84 @@ export default function PropertyDetailPage() {
                 )}
               </div>
             </section>
-          </div>
 
-          {/* Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-6 space-y-4">
-              {/* Lister link – visible for all; leads to modern lister page with public info & properties */}
-              {property.listerId && (
-                <div className="p-4 rounded-xl border bg-card shadow-sm">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
-                    Listed by
+            {/* Contact Card - full options for authenticated users */}
+            <div className="p-5 border rounded-xl bg-card shadow-sm">
+              <h3 className="text-base font-bold mb-3">Contact Property Owner</h3>
+              {isAuthenticated ? (
+                <ContactButton
+                  property={property}
+                  landlord={{
+                    name: property.lister?.profile?.name || property.lister?.email || "Property Owner",
+                    phone: property.lister?.phone,
+                    email: property.lister?.email,
+                  }}
+                />
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-muted-foreground text-xs">
+                    Sign up or log in to view contact details and get in touch with the property owner.
                   </p>
-                  <Link
-                    href={`/listers/${property.listerId}`}
-                    className="text-base font-bold text-primary hover:underline block mb-1.5"
-                  >
-                    {property.lister?.profile?.name ||
-                      property.lister?.profile?.companyName ||
-                      "View lister profile"}
-                  </Link>
-                  <p className="text-xs text-muted-foreground">
-                    View their public profile, lister type, and all listings.
-                  </p>
-                </div>
-              )}
-
-              {/* Contact Card - only show contact info when authenticated */}
-              <div className="p-5 border rounded-xl bg-card shadow-sm">
-                <h3 className="text-base font-bold mb-3">Contact Property Owner</h3>
-                {isAuthenticated ? (
-                  <ContactButton
-                    property={property}
-                    landlord={{
-                      name: property.lister?.profile?.name || property.lister?.email || "Property Owner",
-                      phone: property.lister?.phone,
-                      email: property.lister?.email,
-                    }}
-                  />
-                ) : (
-                  <div className="space-y-3">
-                    <p className="text-muted-foreground text-xs">
-                      Sign up or log in to view contact details and get in touch with the property owner.
-                    </p>
-                    <div className="flex flex-col gap-2">
-                      <Link href="/register?role=seeker">
-                        <Button className="w-full text-sm" size="sm">
-                          Sign up to contact lister
-                        </Button>
-                      </Link>
-                      <Link href="/login">
-                        <Button variant="outline" className="w-full text-sm" size="sm">
-                          Log in to contact
-                        </Button>
-                      </Link>
-                    </div>
+                  <div className="flex flex-col gap-2">
+                    <Link href="/register?role=seeker">
+                      <Button className="w-full text-sm" size="sm">
+                        Sign up to contact lister
+                      </Button>
+                    </Link>
+                    <Link href="/login">
+                      <Button variant="outline" className="w-full text-sm" size="sm">
+                        Log in to contact
+                      </Button>
+                    </Link>
                   </div>
-                )}
-              </div>
-
-              {/* Map Placeholder */}
-              {property.location?.latitude != null && property.location?.longitude != null && (
-                <div className="p-5 border rounded-xl bg-card shadow-sm">
-                  <h3 className="text-base font-bold mb-3">Location</h3>
-                  <div className="h-48 bg-muted rounded-lg flex items-center justify-center">
-                    <p className="text-muted-foreground text-xs">Map integration coming soon</p>
-                  </div>
-                  <p className="mt-3 text-xs text-muted-foreground">
-                    {locationString}
-                  </p>
                 </div>
               )}
             </div>
+
+            {/* Map Placeholder */}
+            {property.location?.latitude != null && property.location?.longitude != null && (
+              <div className="p-5 border rounded-xl bg-card shadow-sm">
+                <h3 className="text-base font-bold mb-3">Location</h3>
+                <div className="h-48 bg-muted rounded-lg flex items-center justify-center">
+                  <p className="text-muted-foreground text-xs">Map integration coming soon</p>
+                </div>
+                <p className="mt-3 text-xs text-muted-foreground">
+                  {locationString}
+                </p>
+              </div>
+            )}
+          </div>
+
+        {/* 5. Bottom action bar – Like, Share, Send */}
+        <div className="fixed bottom-0 left-0 right-0 border-t bg-background/95 backdrop-blur z-40 py-3 px-4">
+          <div className="max-w-2xl mx-auto flex items-center justify-center gap-6">
+            <button
+              type="button"
+              onClick={handleFavoriteClick}
+              disabled={addFavoriteMutation.isPending || removeFavoriteMutation.isPending}
+              className="flex flex-col items-center gap-0.5 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+            >
+              <Heart
+                className={`h-6 w-6 ${isFavorite ? "fill-red-500 text-red-500" : ""}`}
+              />
+              <span className="text-xs">{isFavorite ? "Liked" : "Like"}</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleShare}
+              className="flex flex-col items-center gap-0.5 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Share2 className="h-6 w-6" />
+              <span className="text-xs">Share</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleSendClick}
+              className="flex flex-col items-center gap-0.5 text-muted-foreground hover:text-primary transition-colors"
+            >
+              <Send className="h-6 w-6" />
+              <span className="text-xs">Send</span>
+            </button>
           </div>
         </div>
       </div>

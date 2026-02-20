@@ -7,13 +7,13 @@ import {
   TouchableOpacity,
   Linking,
   Alert,
-  ActivityIndicator,
   Dimensions,
   Share,
   Modal,
   FlatList,
 } from 'react-native';
-import { Text, Title, Button, useTheme, Avatar } from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Text, Button, useTheme, Avatar } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { propertyApi } from '../../api/properties';
@@ -22,7 +22,14 @@ import { useAuthStore } from '../../store/slices/authSlice';
 import { WEB_APP_URL } from '../../config/env';
 
 const GALLERY_HEIGHT = 280;
+const DESCRIPTION_TRUNCATE_LENGTH = 120;
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+
+const PROFILE_TYPE_LABELS: Record<string, string> = {
+  individual: 'Individual',
+  commissioner: 'Commissioner',
+  company: 'Company',
+};
 
 export default function PropertyDetailScreen({ route, navigation }: any) {
   const { propertyId } = route.params;
@@ -34,6 +41,7 @@ export default function PropertyDetailScreen({ route, navigation }: any) {
   const [isFavorite, setIsFavorite] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [fullScreenImageIndex, setFullScreenImageIndex] = useState<number | null>(null);
+  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
 
   const { data: property, isLoading, error } = useQuery({
     queryKey: ['property', propertyId],
@@ -62,6 +70,7 @@ export default function PropertyDetailScreen({ route, navigation }: any) {
     onSuccess: () => {
       setIsFavorite(true);
       queryClient.invalidateQueries({ queryKey: ['favorites'] });
+      queryClient.invalidateQueries({ queryKey: ['favorite-check', propertyId] });
     },
     onError: (err: any) => {
       Alert.alert('Error', err.response?.data?.message || 'Could not add to favorites');
@@ -73,6 +82,7 @@ export default function PropertyDetailScreen({ route, navigation }: any) {
     onSuccess: () => {
       setIsFavorite(false);
       queryClient.invalidateQueries({ queryKey: ['favorites'] });
+      queryClient.invalidateQueries({ queryKey: ['favorite-check', propertyId] });
     },
   });
 
@@ -113,6 +123,27 @@ export default function PropertyDetailScreen({ route, navigation }: any) {
         url: undefined,
       });
     } catch (_) {}
+  };
+
+  const handleSend = () => {
+    if (!isAuthenticated) {
+      Alert.alert('Sign in', 'Sign in to contact the property owner.');
+      return;
+    }
+    const phone = property?.lister?.whatsappNumber || property?.lister?.phone;
+    if (!phone) {
+      Alert.alert('No number', 'WhatsApp number not available.');
+      return;
+    }
+    const clean = String(phone).replace(/\D/g, '');
+    const wa = clean.startsWith('250') ? clean : `250${clean}`;
+    const message = encodeURIComponent(
+      `Hi, I'm interested in your property: ${property?.title}\n` +
+      `Location: ${property?.location?.sector}, ${property?.location?.district}\n` +
+      `Price: ${property?.currency} ${property?.price?.toLocaleString()}\n` +
+      `Property ID: ${property?.id}`
+    );
+    Linking.openURL(`https://wa.me/${wa}?text=${message}`);
   };
 
   const handleOpenMap = () => {
@@ -174,30 +205,54 @@ export default function PropertyDetailScreen({ route, navigation }: any) {
     setGalleryIndex(Math.min(index, imageUrls.length - 1));
   };
 
-  return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.headerRow}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color="#fff" />
-        </TouchableOpacity>
-        <View style={styles.headerRight}>
-          <TouchableOpacity onPress={handleShare} style={styles.iconBtn}>
-            <Ionicons name="share-outline" size={24} color="#fff" />
-          </TouchableOpacity>
-          {isAuthenticated && (
-            <TouchableOpacity onPress={handleFavoritePress} style={styles.iconBtn}>
-              <Ionicons
-                name={isFavorite ? 'heart' : 'heart-outline'}
-                size={24}
-                color={isFavorite ? '#EF4444' : '#fff'}
-              />
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
+  const insets = useSafeAreaInsets();
+  const profileTypeLabel = lister?.profileType ? PROFILE_TYPE_LABELS[lister.profileType] ?? lister.profileType : null;
+  const description = property.description || '';
+  const needsTruncate = description.length > DESCRIPTION_TRUNCATE_LENGTH;
+  const showDescription = descriptionExpanded || !needsTruncate ? description : description.slice(0, DESCRIPTION_TRUNCATE_LENGTH) + '...';
 
-      {imageUrls.length > 0 ? (
-        <View style={styles.galleryWrap}>
+  return (
+    <View style={styles.container}>
+      <ScrollView style={styles.scroll} contentContainerStyle={[styles.content, { paddingBottom: 80 + insets.bottom }]} showsVerticalScrollIndicator={false}>
+        {/* Back button - overlay on top */}
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={[styles.backBtn, { top: insets.top + 8 }]}
+        >
+          <Ionicons name="arrow-back" size={24} color="#1f2937" />
+        </TouchableOpacity>
+
+        {/* 1. Profile header – lister avatar, name, title */}
+        {lister && (
+          <View style={styles.profileHeader}>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => Linking.openURL(`${WEB_APP_URL}/listers/${property.listerId}`)}
+              style={styles.profileHeaderInner}
+            >
+              {lister.profile?.avatarUrl ? (
+                <Image source={{ uri: lister.profile.avatarUrl }} style={styles.profileAvatar} />
+              ) : (
+                <Avatar.Text size={44} label={listerInitials} style={styles.profileAvatarPlaceholder} />
+              )}
+              <View style={styles.profileText}>
+                <Text variant="titleMedium" numberOfLines={1} style={styles.profileName}>
+                  {listerName}
+                </Text>
+                {profileTypeLabel && (
+                  <Text variant="bodySmall" style={styles.profileType}>
+                    {profileTypeLabel}
+                  </Text>
+                )}
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.placeholder} />
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* 2. Image carousel */}
+        {imageUrls.length > 0 ? (
+          <View style={styles.galleryWrap}>
           <ScrollView
             horizontal
             pagingEnabled
@@ -223,68 +278,75 @@ export default function PropertyDetailScreen({ route, navigation }: any) {
             </View>
           )}
         </View>
-      ) : (
-        <View style={[styles.galleryPlaceholder, { backgroundColor: colors.surfaceDisabled }]}>
-          <Ionicons name="home-outline" size={64} color={colors.placeholder} />
-        </View>
-      )}
+        ) : (
+          <View style={[styles.galleryPlaceholder, { backgroundColor: colors.surfaceDisabled }]}>
+            <Ionicons name="home-outline" size={64} color={colors.placeholder} />
+          </View>
+        )}
 
-      <View style={styles.body}>
-        <Title style={styles.title}>{property.title}</Title>
-        <View style={styles.priceRow}>
-          <Text variant="headlineSmall" style={styles.price}>
-            {property.currency} {property.price.toLocaleString()}
-          </Text>
-          <Text variant="bodyMedium" style={styles.transaction}>
-            /{property.transactionType}
-          </Text>
-        </View>
-        <View style={styles.locationRow}>
-          <Ionicons name="location-outline" size={18} color={colors.placeholder} />
-          <Text variant="bodyMedium" style={styles.location}>
-            {locationStr}
-          </Text>
-          {hasMapLocation && (
-            <TouchableOpacity onPress={handleOpenMap} style={styles.mapLink}>
-              <Text variant="bodySmall" style={styles.mapLinkText}>
-                View on map
-              </Text>
-              <Ionicons name="open-outline" size={14} color={colors.primary} />
-            </TouchableOpacity>
-          )}
-        </View>
-
-        <View style={styles.metaGrid}>
-          {property.bedrooms != null && (
-            <View style={styles.metaItem}>
-              <Ionicons name="bed-outline" size={20} color={colors.primary} />
-              <Text variant="bodyMedium">{property.bedrooms} bed</Text>
-            </View>
-          )}
-          {property.bathrooms != null && (
-            <View style={styles.metaItem}>
-              <Ionicons name="water-outline" size={20} color={colors.primary} />
-              <Text variant="bodyMedium">{property.bathrooms} bath</Text>
-            </View>
-          )}
-          {property.sizeSqm != null && property.sizeSqm > 0 && (
-            <View style={styles.metaItem}>
-              <Ionicons name="resize-outline" size={20} color={colors.primary} />
-              <Text variant="bodyMedium">{property.sizeSqm} m²</Text>
-            </View>
-          )}
-        </View>
-
-        {property.description ? (
-          <>
-            <Text variant="titleSmall" style={styles.sectionTitle}>
-              Description
-            </Text>
+        {/* 3. Expandable description */}
+        {description ? (
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => setDescriptionExpanded((e) => !e)}
+            style={styles.descriptionBlock}
+          >
             <Text variant="bodyMedium" style={styles.description}>
-              {property.description}
+              {showDescription}
             </Text>
-          </>
+            {needsTruncate && (
+              <Text variant="bodySmall" style={styles.moreLess}>
+                {descriptionExpanded ? 'Show less' : 'more...'}
+              </Text>
+            )}
+          </TouchableOpacity>
         ) : null}
+
+        {/* 4. Details – price, location, meta, amenities, etc. */}
+        <View style={styles.body}>
+          <View style={styles.priceRow}>
+            <Text variant="headlineSmall" style={styles.price}>
+              {property.currency} {property.price.toLocaleString()}
+            </Text>
+            <Text variant="bodyMedium" style={styles.transaction}>
+              /{property.transactionType}
+            </Text>
+          </View>
+          <View style={styles.locationRow}>
+            <Ionicons name="location-outline" size={18} color={colors.placeholder} />
+            <Text variant="bodyMedium" style={styles.location}>
+              {locationStr}
+            </Text>
+            {hasMapLocation && (
+              <TouchableOpacity onPress={handleOpenMap} style={styles.mapLink}>
+                <Text variant="bodySmall" style={styles.mapLinkText}>
+                  View on map
+                </Text>
+                <Ionicons name="open-outline" size={14} color={colors.primary} />
+              </TouchableOpacity>
+            )}
+          </View>
+
+          <View style={styles.metaGrid}>
+            {property.bedrooms != null && (
+              <View style={styles.metaItem}>
+                <Ionicons name="bed-outline" size={20} color={colors.primary} />
+                <Text variant="bodyMedium">{property.bedrooms} bed</Text>
+              </View>
+            )}
+            {property.bathrooms != null && (
+              <View style={styles.metaItem}>
+                <Ionicons name="water-outline" size={20} color={colors.primary} />
+                <Text variant="bodyMedium">{property.bathrooms} bath</Text>
+              </View>
+            )}
+            {property.sizeSqm != null && property.sizeSqm > 0 && (
+              <View style={styles.metaItem}>
+                <Ionicons name="resize-outline" size={20} color={colors.primary} />
+                <Text variant="bodyMedium">{property.sizeSqm} m²</Text>
+              </View>
+            )}
+          </View>
 
         {property.amenities && property.amenities.length > 0 && (
           <>
@@ -323,56 +385,68 @@ export default function PropertyDetailScreen({ route, navigation }: any) {
         )}
 
         {lister && (
-          <>
-            <Text variant="titleSmall" style={styles.sectionTitle}>
-              Listed by
-            </Text>
-            <View style={styles.listerCard}>
-              {lister.profile?.avatarUrl ? (
-                <Image
-                  source={{ uri: lister.profile.avatarUrl }}
-                  style={styles.listerAvatar}
-                />
-              ) : (
-                <Avatar.Text size={48} label={listerInitials} style={styles.listerAvatarWrap} />
-              )}
-              <View style={styles.listerInfo}>
-                <Text variant="titleSmall" numberOfLines={1}>
-                  {listerName}
-                </Text>
-                <View style={styles.contactRow}>
-                  <Button
-                    mode="contained"
-                    compact
-                    onPress={handleCall}
-                    icon={() => <Ionicons name="call-outline" size={18} color="#fff" />}
-                    style={styles.contactBtn}
-                  >
-                    Call
-                  </Button>
-                  <Button
-                    mode="outlined"
-                    compact
-                    onPress={handleWhatsApp}
-                    icon={() => <Ionicons name="logo-whatsapp" size={18} color={colors.primary} />}
-                    style={styles.contactBtn}
-                  >
-                    WhatsApp
-                  </Button>
-                </View>
-                <Button
-                  mode="text"
-                  compact
-                  onPress={() => Linking.openURL(`${WEB_APP_URL}/listers/${property.listerId}`)}
-                  icon={() => <Ionicons name="open-outline" size={18} color={colors.primary} />}
-                  style={styles.viewListerBtn}
-                >
-                  View full profile & more listings
-                </Button>
-              </View>
+          <View style={styles.listerCard}>
+            <View style={styles.contactRow}>
+              <Button
+                mode="contained"
+                compact
+                onPress={handleCall}
+                icon={() => <Ionicons name="call-outline" size={18} color="#fff" />}
+                style={styles.contactBtn}
+              >
+                Call
+              </Button>
+              <Button
+                mode="outlined"
+                compact
+                onPress={handleWhatsApp}
+                icon={() => <Ionicons name="logo-whatsapp" size={18} color={colors.primary} />}
+                style={styles.contactBtn}
+              >
+                WhatsApp
+              </Button>
             </View>
-          </>
+            <Button
+              mode="text"
+              compact
+              onPress={() => Linking.openURL(`${WEB_APP_URL}/listers/${property.listerId}`)}
+              icon={() => <Ionicons name="open-outline" size={18} color={colors.primary} />}
+              style={styles.viewListerBtn}
+            >
+              View full profile & more listings
+            </Button>
+          </View>
         )}
+      </View>
+
+      {/* 5. Bottom action bar – Like, Share, Send */}
+      <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 12 }]}>
+        <TouchableOpacity
+          onPress={handleFavoritePress}
+          disabled={addFavoriteMutation.isPending || removeFavoriteMutation.isPending}
+          style={styles.bottomBarItem}
+        >
+          <Ionicons
+            name={isFavorite ? 'heart' : 'heart-outline'}
+            size={26}
+            color={isFavorite ? '#EF4444' : colors.onSurface}
+          />
+          <Text variant="bodySmall" style={styles.bottomBarLabel}>
+            {isFavorite ? 'Liked' : 'Like'}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={handleShare} style={styles.bottomBarItem}>
+          <Ionicons name="share-outline" size={26} color={colors.onSurface} />
+          <Text variant="bodySmall" style={styles.bottomBarLabel}>
+            Share
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={handleSend} style={styles.bottomBarItem}>
+          <Ionicons name="send-outline" size={26} color={colors.primary} />
+          <Text variant="bodySmall" style={[styles.bottomBarLabel, { color: colors.primary }]}>
+            Send
+          </Text>
+        </TouchableOpacity>
       </View>
 
       <Modal
@@ -410,30 +484,43 @@ export default function PropertyDetailScreen({ route, navigation }: any) {
           )}
         </View>
       </Modal>
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  content: { paddingBottom: 32 },
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 48,
-    paddingBottom: 8,
+  container: { flex: 1, backgroundColor: '#fff' },
+  scroll: { flex: 1 },
+  content: { paddingTop: 8 },
+  backBtn: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
+    left: 12,
     zIndex: 10,
+    padding: 8,
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    borderRadius: 20,
   },
-  backBtn: { padding: 8 },
-  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  iconBtn: { padding: 8 },
+  profileHeader: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    paddingTop: 52,
+  },
+  profileHeaderInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  profileAvatar: { width: 44, height: 44, borderRadius: 22 },
+  profileAvatarPlaceholder: { backgroundColor: '#9CA3AF' },
+  profileText: { flex: 1, minWidth: 0 },
+  profileName: { fontWeight: '600' },
+  profileType: { color: '#6B7280', marginTop: 2 },
+  descriptionBlock: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    paddingBottom: 16,
+  },
+  moreLess: { color: '#2563EB', marginTop: 4, fontWeight: '500' },
   galleryWrap: { position: 'relative' },
   gallery: { height: GALLERY_HEIGHT },
   galleryImage: { width: SCREEN_WIDTH, height: GALLERY_HEIGHT },
@@ -482,19 +569,37 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', gap: 32, marginTop: 8 },
   statItem: { alignItems: 'center', gap: 4 },
   listerCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
     padding: 16,
     backgroundColor: '#F3F4F6',
     borderRadius: 12,
   },
-  listerAvatar: { width: 48, height: 48, borderRadius: 24 },
-  listerAvatarWrap: { backgroundColor: '#9CA3AF' },
-  listerInfo: { flex: 1 },
-  contactRow: { flexDirection: 'row', gap: 8, marginTop: 8 },
+  contactRow: { flexDirection: 'row', gap: 8, marginBottom: 8 },
   contactBtn: { flex: 1 },
-  viewListerBtn: { marginTop: 8, alignSelf: 'flex-start' },
+  viewListerBtn: { alignSelf: 'flex-start' },
+  bottomBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    paddingTop: 12,
+    paddingHorizontal: 24,
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+  },
+  bottomBarItem: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 72,
+  },
+  bottomBarLabel: {
+    marginTop: 4,
+    fontSize: 12,
+    color: '#6B7280',
+  },
   fullScreenOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.95)',
