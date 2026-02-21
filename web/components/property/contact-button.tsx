@@ -1,8 +1,10 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { MessageCircle, Phone, Mail } from "lucide-react";
+import { MessageCircle, Phone, Mail, Send } from "lucide-react";
 import { Property } from "@/lib/types";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/hooks/use-auth";
 
 interface ContactButtonProps {
   property: Property;
@@ -14,6 +16,18 @@ interface ContactButtonProps {
 }
 
 export function ContactButton({ property, landlord }: ContactButtonProps) {
+  const router = useRouter();
+  const { isAuthenticated } = useAuth();
+
+  const handleInAppMessage = () => {
+    if (!isAuthenticated) {
+      router.push(`/login?redirect=/messages`);
+      return;
+    }
+    // Navigate to messages page with pre-selected conversation
+    router.push(`/messages?userId=${property.listerId}`);
+  };
+
   const handleWhatsAppContact = () => {
     if (!landlord.phone) {
       alert("Phone number not available");
@@ -67,7 +81,17 @@ export function ContactButton({ property, landlord }: ContactButtonProps) {
 
   return (
     <div className="space-y-3">
-      {/* WhatsApp Button (Primary) */}
+      {/* In-App Message Button (Primary) */}
+      <Button
+        onClick={handleInAppMessage}
+        className="w-full bg-gradient-to-r from-primary to-blue-600 hover:shadow-lg transition-all"
+        size="lg"
+      >
+        <Send className="h-5 w-5 mr-2" />
+        Send Message
+      </Button>
+
+      {/* WhatsApp Button (Secondary) */}
       {landlord.phone && (
         <Button
           onClick={handleWhatsAppContact}

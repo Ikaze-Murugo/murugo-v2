@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { LogOut, LayoutDashboard, Menu } from "lucide-react";
+import { LogOut, LayoutDashboard, Menu, MessageCircle } from "lucide-react";
 import { useState } from "react";
 
 export function SiteHeader() {
@@ -50,6 +50,12 @@ export function SiteHeader() {
             <nav className="hidden md:flex items-center gap-2">
               {isAuthenticated ? (
                 <>
+                  <Link href="/messages">
+                    <Button variant="ghost" size="sm" className={`gap-2 ${pathname === "/messages" ? "bg-primary/10 text-primary" : ""}`}>
+                      <MessageCircle className="h-4 w-4" />
+                      Messages
+                    </Button>
+                  </Link>
                   {!isDashboard && !isAdmin && (
                     <Link href="/dashboard">
                       <Button variant="ghost" size="sm" className="gap-2">
@@ -130,6 +136,12 @@ export function SiteHeader() {
             </Link>
             {isAuthenticated ? (
               <>
+                <Link href="/messages" onClick={() => setMobileNavOpen(false)}>
+                  <Button variant="ghost" className="w-full justify-start gap-2" size="sm">
+                    <MessageCircle className="h-4 w-4" />
+                    Messages
+                  </Button>
+                </Link>
                 {!isDashboard && !isAdmin && (
                   <Link href="/dashboard" onClick={() => setMobileNavOpen(false)}>
                     <Button variant="ghost" className="w-full justify-start gap-2" size="sm">

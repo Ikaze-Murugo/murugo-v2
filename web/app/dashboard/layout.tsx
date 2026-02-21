@@ -17,12 +17,14 @@ import {
   CheckCircle,
   Star,
   Users,
+  MessageCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
 const baseNavigation = [
   { name: "Dashboard", href: "/dashboard", icon: Home },
+  { name: "Messages", href: "/messages", icon: MessageCircle },
   { name: "Favorites", href: "/dashboard/favorites", icon: Heart },
   { name: "Profile", href: "/dashboard/profile", icon: User },
 ];
