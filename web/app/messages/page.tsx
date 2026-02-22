@@ -161,14 +161,14 @@ export default function MessagesPage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#f8f8f5] dark:bg-[#1a1a2e]">
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden" style={{ height: "calc(100vh - 120px)" }}>
+    <div className="h-full bg-[#f8f8f5] dark:bg-[#1a1a2e]">
+      <div className="h-full md:max-w-7xl md:mx-auto md:px-4 md:py-6">
+        <div className="bg-white dark:bg-gray-800 md:rounded-lg md:shadow-sm overflow-hidden h-full">
           <div className="grid grid-cols-1 md:grid-cols-3 h-full">
             {/* Conversations List */}
             <div className={`border-r border-gray-200 dark:border-gray-700 flex flex-col ${selectedConversation && "hidden md:flex"}`}>
               {/* Header */}
-              <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+              <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 sticky top-0 z-10">
                 <h1 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">Messages</h1>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />

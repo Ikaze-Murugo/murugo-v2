@@ -46,8 +46,30 @@ export function SiteHeader() {
             </Link>
           </nav>
 
-          <div className="flex items-center gap-2">
-            <nav className="hidden md:flex items-center gap-2">
+          {/* Mobile: Show only auth buttons or user info */}
+          <div className="flex items-center gap-2 md:hidden">
+            {isAuthenticated ? (
+              <Link href="/dashboard">
+                <Button variant="ghost" size="sm" className="gap-2">
+                  <LayoutDashboard className="h-4 w-4" />
+                  <span className="hidden sm:inline">Dashboard</span>
+                </Button>
+              </Link>
+            ) : (
+              <>
+                <Link href="/login">
+                  <Button variant="ghost" size="sm">Log in</Button>
+                </Link>
+                <Link href="/register">
+                  <Button size="sm">Sign up</Button>
+                </Link>
+              </>
+            )}
+          </div>
+
+          {/* Desktop nav */}
+          <div className="hidden md:flex items-center gap-2">
+            <nav className="flex items-center gap-2">
               {isAuthenticated ? (
                 <>
                   <Link href="/messages">
@@ -99,20 +121,11 @@ export function SiteHeader() {
                 </>
               )}
             </nav>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden"
-              onClick={() => setMobileNavOpen((o) => !o)}
-              aria-label="Toggle menu"
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
           </div>
         </div>
 
-        {/* Mobile nav dropdown */}
-        {mobileNavOpen && (
+        {/* Mobile nav dropdown - removed, using bottom nav instead */}
+        {false && mobileNavOpen && (
           <div className="md:hidden border-t bg-background px-4 py-3 flex flex-col gap-2">
             <Link href="/properties" onClick={() => setMobileNavOpen(false)}>
               <Button variant="ghost" className="w-full justify-start" size="sm">
