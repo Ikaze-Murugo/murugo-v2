@@ -1,6 +1,6 @@
 "use client";
 
-import { PropertyCard } from "@/components/property/property-card";
+import { PropertyCardHorizontal } from "@/components/property/property-card-horizontal";
 import { PropertyFilters } from "@/components/property/property-filters";
 import { Button } from "@/components/ui/button";
 import { propertyApi } from "@/lib/api/endpoints";
@@ -33,7 +33,7 @@ export default function PropertiesPage() {
   };
 
   return (
-    <div className="min-h-screen py-6 px-4 bg-[#f8f8f5]">
+    <div className="min-h-screen py-6 px-4 bg-gradient-to-b from-[#fafaf8] to-[#f5f5f3]">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
@@ -66,9 +66,9 @@ export default function PropertiesPage() {
         {/* Properties Grid */}
         {!isLoading && !error && properties.length > 0 && (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
+            <div className="space-y-4 mb-6">
               {properties.map((property) => (
-                <PropertyCard key={property.id} property={property} />
+                <PropertyCardHorizontal key={property.id} property={property} />
               ))}
             </div>
 

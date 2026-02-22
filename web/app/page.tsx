@@ -1,13 +1,26 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { PropertyCard } from "@/components/property/property-card";
+import { PropertyCardHorizontal } from "@/components/property/property-card-horizontal";
 import { propertyApi } from "@/lib/api/endpoints";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, Search, ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
-import { useState, useEffect } from "react";
+import { 
+  ArrowRight, 
+  Search, 
+  ChevronLeft, 
+  ChevronRight, 
+  ChevronDown,
+  Home as HomeIcon,
+  Building,
+  Building2,
+  Store,
+  Warehouse,
+  LandPlot,
+  Hotel
+} from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import { landingImages } from "@/lib/data/landing-images";
 
 const FAQ_ITEMS = [
@@ -39,292 +52,260 @@ const SERVICES = [
   { id: "selling", ...landingImages.services.selling },
 ] as const;
 
+const PROPERTY_TYPES = [
+  { id: "rent", label: "For Rent", icon: HomeIcon, filter: { transaction: "rent" } },
+  { id: "sale", label: "For Sale", icon: Building, filter: { transaction: "sale" } },
+  { id: "commercial", label: "Commercial", icon: Store, filter: { propertyType: "commercial" } },
+  { id: "condo", label: "Condo", icon: Building2, filter: { propertyType: "condo" } },
+  { id: "apartment", label: "Apartment", icon: Hotel, filter: { propertyType: "apartment" } },
+  { id: "house", label: "House", icon: HomeIcon, filter: { propertyType: "house" } },
+  { id: "land", label: "Land", icon: LandPlot, filter: { propertyType: "land" } },
+  { id: "warehouse", label: "Warehouse", icon: Warehouse, filter: { propertyType: "warehouse" } },
+];
+
 export default function HomePage() {
   const [serviceIndex, setServiceIndex] = useState(0);
   const [faqOpen, setFaqOpen] = useState<number | null>(0);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [visibleProperties, setVisibleProperties] = useState(6);
+  const propertyTypeScrollRef = useRef<HTMLDivElement>(null);
 
   const { data: featuredData } = useQuery({
     queryKey: ["properties", "featured"],
-    queryFn: () => propertyApi.getAll({ limit: 3, sortBy: "viewsCount" }),
+    queryFn: () => propertyApi.getAll({ limit: 6, sortBy: "viewsCount" }),
   });
 
-  const { data: latestData } = useQuery({
-    queryKey: ["properties", "latest"],
-    queryFn: () => propertyApi.getAll({ limit: 6, sortBy: "createdAt" }),
+  const { data: allPropertiesData } = useQuery({
+    queryKey: ["properties", "all"],
+    queryFn: () => propertyApi.getAll({ limit: 20, sortBy: "createdAt" }),
   });
 
   const featuredProperties = featuredData?.properties || [];
-  const latestProperties = latestData?.properties || [];
+  const allProperties = allPropertiesData?.properties || [];
 
   useEffect(() => {
     const t = setInterval(() => setServiceIndex((i) => (i + 1) % SERVICES.length), 5000);
     return () => clearInterval(t);
   }, []);
 
+  const scrollPropertyTypes = (direction: "left" | "right") => {
+    if (propertyTypeScrollRef.current) {
+      const scrollAmount = 200;
+      propertyTypeScrollRef.current.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
+      });
+    }
+  };
+
+  const handleLoadMore = () => {
+    setVisibleProperties((prev) => prev + 6);
+  };
+
   return (
-    <div className="min-h-screen bg-[#f8f8f5]">
-      {/* Hero: left = words + app badges, right = phone; responsive stack */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-background py-10 md:py-16 px-4">
-        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-8 lg:gap-14">
-          <div className="flex-1 text-center lg:text-left order-2 lg:order-1">
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 md:mb-5 tracking-tight">
+    <div className="min-h-screen bg-gradient-to-b from-[#fafaf8] to-[#f5f5f3]">
+      {/* Hero Section - Only on Web (Desktop) */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-background py-12 md:py-20 px-4 hidden md:block">
+        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
+          <div className="flex-1 text-center lg:text-left">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-5 tracking-tight bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
               Find Your Perfect Home in Rwanda
             </h1>
-            <p className="text-base md:text-lg text-muted-foreground mb-5 max-w-xl mx-auto lg:mx-0">
-              Discover houses, apartments, and commercial properties across Kigali and beyond.
+            <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto lg:mx-0">
+              Discover houses, apartments, and commercial properties across Kigali and beyond. Your dream property is just a search away.
             </p>
-            <div className="max-w-xl mx-auto lg:mx-0 mb-5">
-              <div className="flex gap-2 bg-background/80 rounded-xl shadow-lg border p-2">
-                <input
-                  type="text"
-                  placeholder="Search by location, property type..."
-                  className="flex-1 min-w-0 px-4 py-2.5 text-sm rounded-lg bg-muted/50 border-0 outline-none focus:ring-2 focus:ring-primary/20"
-                />
-                <Link href="/properties">
-                  <Button size="sm" className="shrink-0 text-sm">
-                    <Search className="h-4 w-4 md:mr-2" />
-                    <span className="hidden md:inline">Search</span>
-                  </Button>
-                </Link>
-              </div>
-            </div>
-            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
-              <Link
-                href="/download"
-                className="inline-flex items-center gap-2 h-10 px-3.5 rounded-lg border bg-primary/10 border-primary/30 text-primary hover:bg-primary/20 transition-colors font-medium"
-              >
-                <Image
-                  src={landingImages.appStores.google}
-                  alt="Download Android app"
-                  width={120}
-                  height={36}
-                  className="h-8 w-auto object-contain"
-                />
-                <span className="text-xs font-semibold">APK</span>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+              <Link href="/properties">
+                <Button size="lg" className="w-full sm:w-auto text-base px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all">
+                  Explore Properties
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
               </Link>
-              <span className="relative inline-block">
-                <span className="inline-flex items-center gap-2 h-10 px-3.5 rounded-lg border bg-muted/50 cursor-not-allowed opacity-90">
-                  <Image
-                    src={landingImages.appStores.apple}
-                    alt="Download on the App Store"
-                    width={120}
-                    height={36}
-                    className="h-8 w-auto object-contain"
-                  />
-                </span>
-                <span className="absolute -top-1 -right-1 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-amber-500 text-white rounded shadow">
-                  Coming soon
-                </span>
-              </span>
+              <Link href="/download">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto text-base px-8 py-6 rounded-xl border-2">
+                  Download App
+                </Button>
+              </Link>
             </div>
           </div>
-          <div className="flex-1 w-full max-w-md lg:max-w-lg order-1 lg:order-2 flex justify-center">
-            <div className="relative w-full aspect-[9/16] max-h-[420px] lg:max-h-[480px]">
+          <div className="flex-1 relative">
+            <div className="relative w-full max-w-md mx-auto">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/5 rounded-3xl blur-3xl"></div>
               <Image
                 src={landingImages.hero.phone}
-                alt="Murugo Homes app on phone"
-                fill
-                className="object-contain object-center drop-shadow-2xl"
-                sizes="(max-width: 1024px) 280px, 400px"
-                priority
+                alt="Murugo Homes App"
+                width={400}
+                height={800}
+                className="relative z-10 mx-auto drop-shadow-2xl"
               />
             </div>
           </div>
         </div>
       </section>
 
-      {/* Partner logos – sliding strip with title */}
-      <section className="py-6 md:py-10 border-y bg-muted/30">
-        <div className="max-w-7xl mx-auto px-4 mb-5">
-          <h2 className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Our partners
-          </h2>
-        </div>
-        <div className="relative overflow-hidden">
-          <div className="flex animate-marquee gap-10 md:gap-14 py-3">
-            {[...landingImages.partners, ...landingImages.partners].map((src, i) => (
-              <div
-                key={i}
-                className="flex-shrink-0 w-20 h-10 md:w-28 md:h-12 relative grayscale opacity-70 hover:opacity-100 hover:grayscale-0 transition-all duration-300 hover:scale-105"
-              >
-                <Image src={src} alt={`Partner ${(i % 6) + 1}`} fill className="object-contain object-center" sizes="112px" />
-              </div>
-            ))}
+      {/* Search and Filter Section */}
+      <section className="py-6 px-4 bg-white/50 backdrop-blur-sm sticky top-14 z-40 border-b border-gray-100">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex gap-3 bg-white rounded-2xl shadow-lg border-0 p-2">
+            <div className="flex-1 relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search by location, property type..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 rounded-xl bg-gray-50 border-0 focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
+              />
+            </div>
+            <Link href={`/properties${searchQuery ? `?search=${searchQuery}` : ""}`}>
+              <Button size="lg" className="px-8 rounded-xl shadow-md">
+                Search
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* Featured Properties – limit 3 */}
-      <section className="py-12 md:py-16 px-4">
+      {/* Property Types Carousel - "What are you looking for?" */}
+      <section className="py-8 px-4">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6">
-            <div>
-              <h2 className="text-2xl md:text-3xl font-bold mb-1.5">Featured Properties</h2>
-              <p className="text-muted-foreground text-sm">Hand-picked properties for you</p>
+          <h2 className="text-2xl md:text-3xl font-bold mb-6 text-center">What are you looking for?</h2>
+          
+          <div className="relative">
+            <button
+              onClick={() => scrollPropertyTypes("left")}
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-2 shadow-lg hover:shadow-xl transition-all hidden md:block"
+              aria-label="Scroll left"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+
+            <div
+              ref={propertyTypeScrollRef}
+              className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
+              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            >
+              {PROPERTY_TYPES.map((type) => {
+                const Icon = type.icon;
+                return (
+                  <Link
+                    key={type.id}
+                    href={`/properties?${new URLSearchParams(type.filter as any).toString()}`}
+                    className="flex-shrink-0"
+                  >
+                    <div className="flex flex-col items-center justify-center w-28 h-28 bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 group">
+                      <Icon className="h-8 w-8 mb-2 text-primary group-hover:scale-110 transition-transform" />
+                      <span className="text-xs font-medium text-gray-700 text-center px-2">
+                        {type.label}
+                      </span>
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
-            <Link href="/properties">
-              <Button variant="outline" className="w-full sm:w-auto text-xs" size="sm">
-                View All
-                <ArrowRight className="h-3.5 w-3.5 ml-2" />
+
+            <button
+              onClick={() => scrollPropertyTypes("right")}
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-2 shadow-lg hover:shadow-xl transition-all hidden md:block"
+              aria-label="Scroll right"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Properties */}
+      <section className="py-10 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl md:text-3xl font-bold">Featured Properties</h2>
+            <Link href="/properties?featured=true">
+              <Button variant="ghost" className="gap-2 hover:gap-3 transition-all">
+                See All
+                <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
           </div>
 
           {featuredProperties.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="space-y-4">
               {featuredProperties.map((property) => (
-                <PropertyCard key={property.id} property={property} />
+                <PropertyCardHorizontal key={property.id} property={property} />
               ))}
             </div>
           ) : (
-            <div className="text-center py-12 rounded-xl border border-dashed text-muted-foreground text-sm">
-              No featured properties at the moment. Check back soon.
+            <div className="text-center py-12 text-gray-500">
+              <p>No featured properties available at the moment.</p>
             </div>
           )}
         </div>
       </section>
 
-      {/* Services carousel – centered, 3 slides */}
-      <section className="py-12 md:py-16 px-4 bg-muted/20">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-bold text-center mb-3">Our services</h2>
-          <p className="text-muted-foreground text-center mb-8 max-w-2xl mx-auto text-sm">
-            Whether you're renting, buying, or selling, we're here to help.
-          </p>
-
-          <div className="relative">
-            <div className="overflow-hidden rounded-xl border bg-card shadow-lg">
-              <div className="relative aspect-[16/10] md:aspect-[2/1] bg-muted">
-                {SERVICES.map((s, i) => (
-                  <div
-                    key={s.id}
-                    className={`absolute inset-0 transition-opacity duration-500 ${
-                      i === serviceIndex ? "opacity-100 z-10" : "opacity-0 z-0"
-                    }`}
-                  >
-                    <Image
-                      src={s.image}
-                      alt={s.title}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 768px) 100vw, 900px"
-                    />
-                  </div>
-                ))}
-              </div>
-              <div className="p-5 md:p-6 text-center">
-                <h3 className="text-lg md:text-xl font-semibold mb-2">
-                  {SERVICES[serviceIndex].title}
-                </h3>
-                <p className="text-muted-foreground max-w-md mx-auto text-sm">
-                  {SERVICES[serviceIndex].description}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-center gap-3 mt-5">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setServiceIndex((i) => (i - 1 + SERVICES.length) % SERVICES.length)}
-                aria-label="Previous service"
-                className="h-8 w-8"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <div className="flex gap-1.5">
-                {SERVICES.map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setServiceIndex(i)}
-                    className={`h-2 rounded-full transition-all ${
-                      i === serviceIndex ? "w-7 bg-primary" : "w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50"
-                    }`}
-                    aria-label={`Go to slide ${i + 1}`}
-                  />
-                ))}
-              </div>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setServiceIndex((i) => (i + 1) % SERVICES.length)}
-                aria-label="Next service"
-                className="h-8 w-8"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Latest Listings – limit 6 */}
-      <section className="py-12 md:py-16 px-4">
+      {/* All Properties */}
+      <section className="py-10 px-4">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6">
-            <div>
-              <h2 className="text-2xl md:text-3xl font-bold mb-1.5">Latest Listings</h2>
-              <p className="text-muted-foreground text-sm">Recently added properties</p>
-            </div>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl md:text-3xl font-bold">All Properties</h2>
             <Link href="/properties">
-              <Button variant="outline" className="w-full sm:w-auto text-xs" size="sm">
-                View All
-                <ArrowRight className="h-3.5 w-3.5 ml-2" />
+              <Button variant="ghost" className="gap-2 hover:gap-3 transition-all">
+                See All
+                <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
           </div>
 
-          {latestProperties.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {latestProperties.map((property) => (
-                <PropertyCard key={property.id} property={property} />
-              ))}
-            </div>
+          {allProperties.length > 0 ? (
+            <>
+              <div className="space-y-4">
+                {allProperties.slice(0, visibleProperties).map((property) => (
+                  <PropertyCardHorizontal key={property.id} property={property} />
+                ))}
+              </div>
+
+              {visibleProperties < allProperties.length && (
+                <div className="text-center mt-8">
+                  <Button
+                    onClick={handleLoadMore}
+                    variant="outline"
+                    size="lg"
+                    className="px-8 py-6 rounded-xl border-2"
+                  >
+                    Load More Properties
+                    <ChevronDown className="ml-2 h-5 w-5" />
+                  </Button>
+                </div>
+              )}
+            </>
           ) : (
-            <div className="text-center py-12 rounded-xl border border-dashed text-muted-foreground text-sm">
-              No listings yet. Check back soon.
+            <div className="text-center py-12 text-gray-500">
+              <p>No properties available at the moment.</p>
             </div>
           )}
         </div>
       </section>
 
-      {/* FAQ */}
-      <section className="py-12 md:py-16 px-4 bg-muted/20">
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-bold text-center mb-1.5 tracking-tight">
-            Frequently asked questions
-          </h2>
-          <p className="text-muted-foreground text-center mb-8 text-sm">
-            Quick answers to common questions about Murugo Homes.
-          </p>
-          <div className="space-y-2">
-            {FAQ_ITEMS.map((item, i) => (
+      {/* Services Section - Only on Web (Desktop) */}
+      <section className="py-16 px-4 bg-white/50 hidden md:block">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">Our Services</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {SERVICES.map((service) => (
               <div
-                key={i}
-                className="rounded-xl border bg-card shadow-sm overflow-hidden"
+                key={service.id}
+                className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border-0"
               >
-                <button
-                  type="button"
-                  onClick={() => setFaqOpen(faqOpen === i ? null : i)}
-                  className="w-full flex items-center justify-between gap-3 px-4 py-3.5 text-left font-medium hover:bg-muted/50 transition-colors text-sm"
-                >
-                  <span className="text-foreground">{item.q}</span>
-                  <ChevronDown
-                    className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 ${
-                      faqOpen === i ? "rotate-180" : ""
-                    }`}
+                <div className="relative h-56 overflow-hidden">
+                  <Image
+                    src={service.image}
+                    alt={service.title}
+                    fill
+                    className="object-cover"
                   />
-                </button>
-                <div
-                  className={`grid transition-[grid-template-rows] duration-200 ${
-                    faqOpen === i ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
-                  }`}
-                >
-                  <div className="overflow-hidden border-t">
-                    <p className="px-4 pb-3.5 pt-3.5 text-muted-foreground text-xs leading-relaxed">
-                      {item.a}
-                    </p>
-                  </div>
+                </div>
+                <div className="p-6">
+                  <h3 className="text-xl font-semibold mb-3">{service.title}</h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">{service.description}</p>
                 </div>
               </div>
             ))}
@@ -332,21 +313,77 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-12 md:py-16 px-4">
-        <div className="max-w-4xl mx-auto text-center rounded-xl bg-primary/10 border border-primary/20 p-6 md:p-10">
-          <h2 className="text-2xl md:text-3xl font-bold mb-3">Have a Property to List?</h2>
-          <p className="text-base text-muted-foreground mb-6 max-w-2xl mx-auto">
-            Join thousands of property owners and reach potential buyers and renters across Rwanda.
-          </p>
-          <Link href="/register">
-            <Button size="sm" className="bg-[#949DDB] hover:bg-[#949DDB]/90 text-sm">
-              Get Started
-              <ArrowRight className="h-4 w-4 ml-2" />
-            </Button>
-          </Link>
+      {/* FAQ Section - Only on Web (Desktop) */}
+      <section className="py-16 px-4 hidden md:block">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">Frequently Asked Questions</h2>
+          <div className="space-y-4">
+            {FAQ_ITEMS.map((item, idx) => (
+              <div
+                key={idx}
+                className="bg-white rounded-2xl shadow-md hover:shadow-lg transition-all border-0 overflow-hidden"
+              >
+                <button
+                  onClick={() => setFaqOpen(faqOpen === idx ? null : idx)}
+                  className="w-full px-6 py-5 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
+                >
+                  <span className="font-semibold text-gray-900">{item.q}</span>
+                  <ChevronDown
+                    className={`h-5 w-5 text-gray-500 transition-transform ${
+                      faqOpen === idx ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+                {faqOpen === idx && (
+                  <div className="px-6 pb-5 text-gray-600 text-sm leading-relaxed">
+                    {item.a}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       </section>
+
+      {/* Footer - Only on Web (Desktop) */}
+      <footer className="bg-gray-900 text-white py-12 px-4 hidden md:block">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+            <div>
+              <h3 className="text-xl font-bold mb-4">Murugo Homes</h3>
+              <p className="text-gray-400 text-sm">
+                Your trusted platform for finding properties in Rwanda.
+              </p>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">Quick Links</h4>
+              <ul className="space-y-2 text-sm">
+                <li><Link href="/properties" className="text-gray-400 hover:text-white transition-colors">All Properties</Link></li>
+                <li><Link href="/about" className="text-gray-400 hover:text-white transition-colors">About Us</Link></li>
+                <li><Link href="/contact" className="text-gray-400 hover:text-white transition-colors">Contact</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">For Listers</h4>
+              <ul className="space-y-2 text-sm">
+                <li><Link href="/register" className="text-gray-400 hover:text-white transition-colors">List Your Property</Link></li>
+                <li><Link href="/dashboard" className="text-gray-400 hover:text-white transition-colors">Dashboard</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">Download App</h4>
+              <Link href="/download">
+                <Button variant="outline" className="w-full">
+                  Get the App
+                </Button>
+              </Link>
+            </div>
+          </div>
+          <div className="border-t border-gray-800 pt-8 text-center text-sm text-gray-400">
+            <p>&copy; {new Date().getFullYear()} Murugo Homes. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
