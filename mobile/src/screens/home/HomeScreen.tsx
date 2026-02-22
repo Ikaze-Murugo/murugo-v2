@@ -5,7 +5,7 @@ import { Text, Title, Button } from 'react-native-paper';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { propertyApi } from '../../api/properties';
 import { favoriteApi } from '../../api/favorites';
-import { PropertyCard } from '../../components/PropertyCard';
+import { PropertyCardHorizontal } from '../../components/PropertyCardHorizontal';
 import { useAuthStore } from '../../store/slices/authSlice';
 import { getOpenAuthAfterOnboarding, clearOpenAuthAfterOnboarding } from '../../config/storage';
 import { API_BASE_URL } from '../../config/env';
@@ -118,10 +118,9 @@ export default function HomeScreen({ navigation }: any) {
           data={properties}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <PropertyCard
+            <PropertyCardHorizontal
               property={item}
               onPress={() => handlePropertyPress(item.id)}
-              showLister={!!user}
               isFavorite={favoriteIds.has(item.id)}
               onFavoritePress={
                 user

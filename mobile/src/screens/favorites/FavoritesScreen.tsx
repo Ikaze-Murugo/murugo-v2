@@ -3,7 +3,7 @@ import { View, StyleSheet, FlatList } from 'react-native';
 import { Text, Title, ActivityIndicator, Button } from 'react-native-paper';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { favoriteApi } from '../../api/favorites';
-import { PropertyCard } from '../../components/PropertyCard';
+import { PropertyCardHorizontal } from '../../components/PropertyCardHorizontal';
 import { useAuthStore } from '../../store/slices/authSlice';
 import type { Property } from '../../types/property.types';
 
@@ -110,10 +110,9 @@ export default function FavoritesScreen({ route, navigation }: any) {
           data={properties}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <PropertyCard
+            <PropertyCardHorizontal
               property={item}
               onPress={() => handlePropertyPress(item.id)}
-              showLister={!!user}
               isFavorite
               onFavoritePress={() => removeFavorite.mutate(item.id)}
             />
