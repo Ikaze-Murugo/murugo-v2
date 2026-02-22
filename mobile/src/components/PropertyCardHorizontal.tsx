@@ -301,18 +301,20 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   priceContainer: {
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-    paddingTop: 6,
+    position: 'absolute',
+    bottom: 8,
+    right: 12,
   },
   priceLabel: {
     color: '#9CA3AF',
     fontSize: 9,
     marginBottom: 2,
+    textAlign: 'right',
   },
   priceRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
+    justifyContent: 'flex-end',
   },
   price: {
     color: '#2563EB',

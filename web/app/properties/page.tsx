@@ -1,5 +1,6 @@
 "use client";
 
+import { PropertyCard } from "@/components/property/property-card";
 import { PropertyCardHorizontal } from "@/components/property/property-card-horizontal";
 import { PropertyFilters } from "@/components/property/property-filters";
 import { Button } from "@/components/ui/button";
@@ -66,7 +67,14 @@ export default function PropertiesPage() {
         {/* Properties Grid */}
         {!isLoading && !error && properties.length > 0 && (
           <>
-            <div className="space-y-4 mb-6">
+            {/* Desktop: Grid Layout */}
+            <div className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
+              {properties.map((property) => (
+                <PropertyCard key={property.id} property={property} />
+              ))}
+            </div>
+            {/* Mobile: Horizontal Cards */}
+            <div className="md:hidden space-y-4 mb-6">
               {properties.map((property) => (
                 <PropertyCardHorizontal key={property.id} property={property} />
               ))}

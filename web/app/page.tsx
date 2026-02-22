@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { PropertyCard } from "@/components/property/property-card";
 import { PropertyCardHorizontal } from "@/components/property/property-card-horizontal";
 import { propertyApi } from "@/lib/api/endpoints";
 import { useQuery } from "@tanstack/react-query";
@@ -229,11 +230,20 @@ export default function HomePage() {
           </div>
 
           {featuredProperties.length > 0 ? (
-            <div className="space-y-4">
-              {featuredProperties.map((property) => (
-                <PropertyCardHorizontal key={property.id} property={property} />
-              ))}
-            </div>
+            <>
+              {/* Desktop: Grid Layout */}
+              <div className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {featuredProperties.map((property) => (
+                  <PropertyCard key={property.id} property={property} />
+                ))}
+              </div>
+              {/* Mobile: Horizontal Cards */}
+              <div className="md:hidden space-y-4">
+                {featuredProperties.map((property) => (
+                  <PropertyCardHorizontal key={property.id} property={property} />
+                ))}
+              </div>
+            </>
           ) : (
             <div className="text-center py-12 text-gray-500">
               <p>No featured properties available at the moment.</p>
@@ -257,7 +267,14 @@ export default function HomePage() {
 
           {allProperties.length > 0 ? (
             <>
-              <div className="space-y-4">
+              {/* Desktop: Grid Layout */}
+              <div className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {allProperties.slice(0, visibleProperties).map((property) => (
+                  <PropertyCard key={property.id} property={property} />
+                ))}
+              </div>
+              {/* Mobile: Horizontal Cards */}
+              <div className="md:hidden space-y-4">
                 {allProperties.slice(0, visibleProperties).map((property) => (
                   <PropertyCardHorizontal key={property.id} property={property} />
                 ))}

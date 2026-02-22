@@ -53,11 +53,11 @@ export function MobileBottomNav() {
                 className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${
                   active
                     ? "text-primary"
-                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+                    : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                 }`}
               >
                 <div className="relative">
-                  <Icon className={`h-6 w-6 ${active ? "stroke-[2.5]" : "stroke-[2]"}`} />
+                  <Icon className={`h-6 w-6 ${active ? "stroke-[3]" : "stroke-[1.5]"}`} />
                   {active && (
                     <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary" />
                   )}

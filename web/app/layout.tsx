@@ -4,6 +4,7 @@ import "./globals.css";
 import { Providers } from "./providers";
 import { SiteHeader } from "@/components/site-header";
 import { MobileBottomNav } from "@/components/mobile-bottom-nav";
+import { SmartScrollHeader } from "@/components/smart-scroll-header";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -51,6 +52,7 @@ export default function RootLayout({
       >
         <Providers>
           <SiteHeader />
+          <SmartScrollHeader />
           {children}
           <MobileBottomNav />
         </Providers>
