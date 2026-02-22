@@ -71,7 +71,7 @@ export function PropertyCardHorizontal({ property, onFavoriteChange }: PropertyC
 
   return (
     <Link href={`/properties/${property.id}`} className="block">
-      <div className="group bg-white dark:bg-gray-800 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 shadow-md">
+      <div className="group bg-white rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 shadow-md">
         <div className="flex flex-col sm:flex-row">
           {/* Image Section - Left Side */}
           <div className="relative w-full sm:w-2/5 h-48 sm:h-auto overflow-hidden bg-gray-100 dark:bg-gray-700">
@@ -116,7 +116,7 @@ export function PropertyCardHorizontal({ property, onFavoriteChange }: PropertyC
           <div className="flex-1 p-4 sm:p-5 flex flex-col justify-between">
             {/* Top Section: Title and Badges */}
             <div>
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-2 line-clamp-1 group-hover:text-primary transition-colors">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2 line-clamp-1 group-hover:text-primary transition-colors">
                 {property.title}
               </h3>
 
@@ -146,47 +146,47 @@ export function PropertyCardHorizontal({ property, onFavoriteChange }: PropertyC
               </div>
 
               {/* Location */}
-              <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400 mb-3">
+              <div className="flex items-center gap-1.5 text-gray-600 mb-3">
                 <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
                 <span className="text-xs line-clamp-1">{locationString}</span>
               </div>
 
               {/* Property Features */}
-              <div className="flex items-center gap-4 text-gray-700 dark:text-gray-300 mb-2">
+              <div className="flex items-center gap-4 text-gray-700 mb-2">
                 {property.bedrooms && (
                   <div className="flex items-center gap-1.5">
-                    <Bed className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                    <Bed className="h-4 w-4 text-gray-500" />
                     <span className="text-sm font-medium">{property.bedrooms}</span>
                   </div>
                 )}
                 {property.bathrooms && (
                   <div className="flex items-center gap-1.5">
-                    <Bath className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                    <Bath className="h-4 w-4 text-gray-500" />
                     <span className="text-sm font-medium">{property.bathrooms}</span>
                   </div>
                 )}
                 {property.sizeSqm && (
                   <div className="flex items-center gap-1.5">
-                    <Square className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                    <Square className="h-4 w-4 text-gray-500" />
                     <span className="text-sm font-medium">{property.sizeSqm} m²</span>
                   </div>
                 )}
               </div>
 
               {/* Property Type */}
-              <div className="text-xs text-gray-500 dark:text-gray-400 capitalize">
+              <div className="text-xs text-gray-500 capitalize">
                 {property.propertyType.replace(/_/g, " ")}
               </div>
             </div>
 
             {/* Bottom Section: Price */}
-            <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700 flex items-end justify-between">
+            <div className="mt-3 pt-3 border-t border-gray-100 flex items-end justify-between">
               <div className="flex-1">
-                <div className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Price</div>
+                <div className="text-xs text-gray-500 mb-0.5">Price</div>
                 <div className="text-xl sm:text-2xl font-bold text-primary">
                   {formatPrice(property.price)}
                   {property.transactionType === "rent" && (
-                    <span className="text-sm font-normal text-gray-500 dark:text-gray-400">/mo</span>
+                    <span className="text-sm font-normal text-gray-500">/mo</span>
                   )}
                 </div>
               </div>

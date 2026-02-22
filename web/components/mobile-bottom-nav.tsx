@@ -40,7 +40,7 @@ export function MobileBottomNav() {
       <div className="h-16 md:hidden" />
       
       {/* Bottom Navigation */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 shadow-lg">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-lg">
         <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-2">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -53,7 +53,7 @@ export function MobileBottomNav() {
                 className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${
                   active
                     ? "text-primary"
-                    : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                    : "text-gray-500 hover:text-gray-700"
                 }`}
               >
                 <div className="relative">

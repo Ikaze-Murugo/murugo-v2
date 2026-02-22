@@ -7,14 +7,47 @@ import { Button } from "@/components/ui/button";
 import { propertyApi } from "@/lib/api/endpoints";
 import { PropertyFilters as Filters } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-export default function PropertiesPage() {
-  const [filters, setFilters] = useState<Filters>({
-    page: 1,
-    limit: 12,
-  });
+function PropertiesPageContent() {
+  const searchParams = useSearchParams();
+  
+  // Initialize filters from URL parameters
+  const getInitialFilters = (): Filters => {
+    const initialFilters: Filters = {
+      page: 1,
+      limit: 12,
+    };
+    
+    // Handle property type from URL
+    const propertyType = searchParams?.get('propertyType');
+    if (propertyType) {
+      initialFilters.propertyType = propertyType as any;
+    }
+    
+    // Handle transaction type from URL
+    const transactionType = searchParams?.get('transactionType');
+    if (transactionType) {
+      initialFilters.transactionType = transactionType as any;
+    }
+    
+    // Handle search query from URL
+    const search = searchParams?.get('search');
+    if (search) {
+      initialFilters.search = search;
+    }
+    
+    return initialFilters;
+  };
+  
+  const [filters, setFilters] = useState<Filters>(getInitialFilters());
+  
+  // Update filters when URL parameters change
+  useEffect(() => {
+    setFilters(getInitialFilters());
+  }, [searchParams]);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["properties", filters],
@@ -159,5 +192,22 @@ export default function PropertiesPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function PropertiesPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen py-6 px-4 bg-gradient-to-b from-[#fafaf8] to-[#f5f5f3]">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center py-12">
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" />
+            <p className="mt-4 text-muted-foreground text-sm">Loading...</p>
+          </div>
+        </div>
+      </div>
+    }>
+      <PropertiesPageContent />
+    </Suspense>
   );
 }
