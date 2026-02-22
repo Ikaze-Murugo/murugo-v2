@@ -16,7 +16,7 @@ export function SiteHeader() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur">
+      <header className="hidden md:block sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur">
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link href="/" className="text-xl font-bold text-primary">
             Murugo Homes

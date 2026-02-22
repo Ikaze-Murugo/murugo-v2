@@ -98,9 +98,6 @@ export function SmartScrollHeader() {
           </Link>
         </div>
       </div>
-
-      {/* Spacer to prevent content from being hidden */}
-      <div className="h-14 md:hidden" />
     </>
   );
 }

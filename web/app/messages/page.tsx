@@ -159,8 +159,8 @@ export default function MessagesPage() {
   );
 
   return (
-    <div className="h-screen bg-neutral-50 flex flex-col">
-      <div className="flex-1 flex flex-col md:max-w-7xl md:mx-auto md:px-6 md:py-6 overflow-hidden">
+    <div className="h-screen bg-neutral-50 flex flex-col pt-14 md:pt-0">
+      <div className="flex-1 flex flex-col md:max-w-7xl md:mx-auto md:px-6 md:pt-6 md:pb-6 overflow-hidden">
         <div className="flex-1 bg-white md:rounded-xl border border-neutral-200 overflow-hidden flex flex-col md:flex-row shadow-sm">
           {/* Conversations List */}
           <div className={`w-full md:w-80 lg:w-96 border-r border-neutral-200 flex flex-col ${selectedConversation && "hidden md:flex"}`}>
@@ -231,8 +231,8 @@ export default function MessagesPage() {
           <div className={`flex-1 flex flex-col ${!selectedConversation && "hidden md:flex"}`}>
             {selectedConversation ? (
               <>
-                {/* Chat Header */}
-                <div className="p-4 border-b border-neutral-100 flex items-center justify-between bg-white">
+                {/* Chat Header - Fixed */}
+                <div className="flex-shrink-0 p-4 border-b border-neutral-100 flex items-center justify-between bg-white">
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => setSelectedConversation(null)}
@@ -255,7 +255,7 @@ export default function MessagesPage() {
                   </div>
                 </div>
 
-                {/* Messages */}
+                {/* Messages - Scrollable */}
                 <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-neutral-50">
                   {messages.map((message) => {
                     const isCurrentUser = message.senderId === "current-user";
@@ -283,8 +283,8 @@ export default function MessagesPage() {
                   <div ref={messagesEndRef} />
                 </div>
 
-                {/* Message Input */}
-                <div className="p-4 border-t border-neutral-100 bg-white">
+                {/* Message Input - Fixed */}
+                <div className="flex-shrink-0 p-4 border-t border-neutral-100 bg-white">
                   <div className="flex items-end gap-3">
                     <div className="flex-1">
                       <textarea
