@@ -1,17 +1,18 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { MessageCircle, Send, Search, ArrowLeft, Circle } from "lucide-react";
+import { MessageCircle, Send, Search, ArrowLeft, Circle, Check, CheckCheck } from "lucide-react";
+import { useRealTimeMessages } from "@/lib/hooks/useRealTimeMessages";
 
 interface Message {
   id: string;
   senderId: string;
   receiverId: string;
-  messageText: string;
-  imageUrl?: string;
+  message: string;
+  images?: string[];
   isRead: boolean;
   createdAt: string;
-  sender: {
+  sender?: {
     id: string;
     name: string;
     avatar?: string;
@@ -31,13 +32,31 @@ interface Conversation {
 export default function MessagesPage() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [localMessages, setLocalMessages] = useState<Message[]>([]);
   const [messageText, setMessageText] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [currentUserId] = useState("current-user"); // TODO: Get from auth context
+  const [authToken] = useState<string | undefined>(undefined); // TODO: Get from auth context
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Mock data for demonstration
+  // Real-time messaging hook
+  const {
+    messages: realtimeMessages,
+    typingUsers,
+    onlineUsers,
+    isConnected,
+    sendMessage,
+    markAsRead,
+    sendTyping,
+  } = useRealTimeMessages({
+    token: authToken,
+    userId: currentUserId,
+    conversationId: selectedConversation || undefined,
+  });
+
+  // Mock data for demonstration (replace with actual API call)
   useEffect(() => {
     setTimeout(() => {
       setConversations([
@@ -73,51 +92,94 @@ export default function MessagesPage() {
     }, 500);
   }, []);
 
+  // Update online status from real-time data
+  useEffect(() => {
+    setConversations((prev) =>
+      prev.map((conv) => ({
+        ...conv,
+        isOnline: onlineUsers.has(conv.userId),
+      }))
+    );
+  }, [onlineUsers]);
+
+  // Merge real-time messages with local messages
+  useEffect(() => {
+    if (realtimeMessages.length > 0) {
+      setLocalMessages((prev) => {
+        const merged = [...prev];
+        realtimeMessages.forEach((rtMsg) => {
+          if (!merged.find((m) => m.id === rtMsg.id)) {
+            merged.push(rtMsg);
+          }
+        });
+        return merged.sort(
+          (a, b) =>
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
+      });
+    }
+  }, [realtimeMessages]);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [localMessages]);
+
+  // Mark messages as read when conversation is selected
+  useEffect(() => {
+    if (selectedConversation && localMessages.length > 0) {
+      const unreadMessageIds = localMessages
+        .filter((msg) => !msg.isRead && msg.senderId !== currentUserId)
+        .map((msg) => msg.id);
+
+      if (unreadMessageIds.length > 0) {
+        markAsRead(unreadMessageIds);
+      }
+    }
+  }, [selectedConversation, localMessages, currentUserId, markAsRead]);
 
   const handleSelectConversation = (userId: string) => {
     setSelectedConversation(userId);
-    setMessages([
+    // TODO: Fetch messages from API
+    setLocalMessages([
       {
         id: "1",
         senderId: userId,
-        receiverId: "current-user",
-        messageText: "Hi, I'm interested in the property at 123 Main St.",
+        receiverId: currentUserId,
+        message: "Hi, I'm interested in the property at 123 Main St.",
         isRead: true,
         createdAt: new Date(Date.now() - 3600000).toISOString(),
         sender: {
           id: userId,
-          name: conversations.find(c => c.userId === userId)?.userName || "",
+          name: conversations.find((c) => c.userId === userId)?.userName || "",
         },
       },
       {
         id: "2",
-        senderId: "current-user",
+        senderId: currentUserId,
         receiverId: userId,
-        messageText: "Hello! Yes, that property is still available. Would you like to schedule a viewing?",
+        message:
+          "Hello! Yes, that property is still available. Would you like to schedule a viewing?",
         isRead: true,
         createdAt: new Date(Date.now() - 3000000).toISOString(),
         sender: {
-          id: "current-user",
+          id: currentUserId,
           name: "You",
         },
       },
       {
         id: "3",
         senderId: userId,
-        receiverId: "current-user",
-        messageText: "Is this property still available?",
+        receiverId: currentUserId,
+        message: "Is this property still available?",
         isRead: false,
         createdAt: new Date(Date.now() - 120000).toISOString(),
         sender: {
           id: userId,
-          name: conversations.find(c => c.userId === userId)?.userName || "",
+          name: conversations.find((c) => c.userId === userId)?.userName || "",
         },
       },
     ]);
@@ -126,21 +188,52 @@ export default function MessagesPage() {
   const handleSendMessage = () => {
     if (!messageText.trim() || !selectedConversation) return;
 
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      senderId: "current-user",
-      receiverId: selectedConversation,
-      messageText: messageText.trim(),
-      isRead: false,
-      createdAt: new Date().toISOString(),
-      sender: {
-        id: "current-user",
-        name: "You",
-      },
-    };
+    // Send via Socket.IO if connected, otherwise fallback to API
+    if (isConnected) {
+      sendMessage({
+        receiverId: selectedConversation,
+        message: messageText.trim(),
+      });
+    } else {
+      // Fallback: Add to local state (would normally call API)
+      const newMessage: Message = {
+        id: Date.now().toString(),
+        senderId: currentUserId,
+        receiverId: selectedConversation,
+        message: messageText.trim(),
+        isRead: false,
+        createdAt: new Date().toISOString(),
+        sender: {
+          id: currentUserId,
+          name: "You",
+        },
+      };
+      setLocalMessages([...localMessages, newMessage]);
+    }
 
-    setMessages([...messages, newMessage]);
     setMessageText("");
+    sendTyping(false);
+  };
+
+  const handleTyping = (value: string) => {
+    setMessageText(value);
+
+    // Send typing indicator
+    if (value.trim()) {
+      sendTyping(true);
+
+      // Clear previous timeout
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+
+      // Stop typing after 3 seconds of inactivity
+      typingTimeoutRef.current = setTimeout(() => {
+        sendTyping(false);
+      }, 3000);
+    } else {
+      sendTyping(false);
+    }
   };
 
   const formatTime = (dateString: string) => {
@@ -149,27 +242,56 @@ export default function MessagesPage() {
     const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / 60000);
 
     if (diffInMinutes < 1) return "Just now";
-    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
+    if (diffInMinutes < 60) return `${diffInMinutes} min ago`;
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} hour${Math.floor(diffInMinutes / 60) > 1 ? "s" : ""} ago`;
     return date.toLocaleDateString();
   };
 
-  const filteredConversations = conversations.filter(conv =>
+  const filteredConversations = conversations.filter((conv) =>
     conv.userName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const selectedUser = conversations.find(
+    (c) => c.userId === selectedConversation
+  );
+
+  const isUserTyping = selectedConversation && typingUsers.has(selectedConversation);
+
   return (
-    // Full viewport height with fixed positioning for mobile
-    <div className="fixed inset-0 bg-neutral-50 flex flex-col md:relative md:min-h-screen">
-      {/* Mobile: Account for fixed header, Desktop: Normal padding */}
-      <div className="flex-1 flex flex-col pt-14 md:pt-6 md:max-w-7xl md:mx-auto md:px-6 md:pb-6 overflow-hidden">
-        {/* Main messaging container - WhatsApp-like full height */}
-        <div className="flex-1 bg-white md:rounded-xl border-0 md:border md:border-neutral-200 overflow-hidden flex flex-col md:flex-row md:shadow-sm">
+    <div className="min-h-screen bg-[#fafaf8] pt-14 md:pt-0">
+      {/* Connection Status Indicator */}
+      {authToken && (
+        <div className="fixed top-16 right-4 z-50 md:top-4">
+          <div
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs ${
+              isConnected
+                ? "bg-emerald-50 text-emerald-700"
+                : "bg-amber-50 text-amber-700"
+            }`}
+          >
+            <Circle
+              className={`h-2 w-2 ${
+                isConnected ? "fill-emerald-500" : "fill-amber-500"
+              }`}
+            />
+            {isConnected ? "Connected" : "Connecting..."}
+          </div>
+        </div>
+      )}
+
+      <div className="max-w-7xl mx-auto h-[calc(100vh-3.5rem)] md:h-screen md:p-6">
+        <div className="h-full bg-white rounded-none md:rounded-lg shadow-sm overflow-hidden flex flex-col md:flex-row">
           {/* Conversations List */}
-          <div className={`w-full md:w-80 lg:w-96 md:border-r border-neutral-200 flex flex-col ${selectedConversation && "hidden md:flex"}`}>
+          <div
+            className={`${
+              selectedConversation ? "hidden md:flex" : "flex"
+            } w-full md:w-80 border-r flex-col`}
+          >
             {/* Header */}
-            <div className="flex-shrink-0 p-5 border-b border-neutral-100 bg-white">
-              <h1 className="text-xl font-semibold text-neutral-900 mb-4">Messages</h1>
+            <div className="p-4 border-b">
+              <h2 className="text-lg font-semibold text-neutral-900 mb-3">
+                Messages
+              </h2>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
                 <input
@@ -177,156 +299,192 @@ export default function MessagesPage() {
                   placeholder="Search conversations..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 text-sm border border-neutral-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary bg-neutral-50 text-neutral-900 transition-all"
+                  className="w-full pl-9 pr-3 py-2 text-sm border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
                 />
               </div>
             </div>
 
-            {/* Conversations - Scrollable */}
+            {/* Conversations */}
             <div className="flex-1 overflow-y-auto">
               {isLoading ? (
-                <div className="flex items-center justify-center h-full">
-                  <div className="animate-spin rounded-full h-8 w-8 border-2 border-neutral-300 border-t-transparent"></div>
+                <div className="flex items-center justify-center h-32">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                 </div>
               ) : filteredConversations.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-neutral-500 p-6">
-                  <MessageCircle className="h-12 w-12 mb-3 opacity-40" />
-                  <p className="text-sm">No conversations yet</p>
+                <div className="flex flex-col items-center justify-center h-32 text-neutral-500">
+                  <MessageCircle className="h-8 w-8 mb-2 opacity-50" />
+                  <p className="text-sm">No conversations found</p>
                 </div>
               ) : (
                 filteredConversations.map((conv) => (
                   <button
                     key={conv.userId}
                     onClick={() => handleSelectConversation(conv.userId)}
-                    className={`w-full p-4 flex items-start gap-3 hover:bg-neutral-50 transition-colors border-b border-neutral-100 ${
-                      selectedConversation === conv.userId ? "bg-neutral-50" : ""
+                    className={`w-full p-4 flex items-start gap-3 hover:bg-neutral-50 transition-colors border-b ${
+                      selectedConversation === conv.userId
+                        ? "bg-primary/5"
+                        : ""
                     }`}
                   >
                     <div className="relative flex-shrink-0">
-                      <div className="h-11 w-11 rounded-full bg-gradient-to-br from-neutral-400 to-neutral-500 flex items-center justify-center text-white font-medium text-sm">
-                        {conv.userName.charAt(0)}
+                      <div className="h-12 w-12 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                        <span className="text-lg font-semibold text-primary">
+                          {conv.userName.charAt(0)}
+                        </span>
                       </div>
                       {conv.isOnline && (
-                        <div className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 border-2 border-white rounded-full"></div>
+                        <Circle className="absolute bottom-0 right-0 h-3 w-3 fill-emerald-500 text-emerald-500 ring-2 ring-white" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0 text-left">
                       <div className="flex items-center justify-between mb-1">
-                        <h3 className="font-medium text-sm text-neutral-900 truncate">{conv.userName}</h3>
-                        <span className="text-xs text-neutral-500 flex-shrink-0 ml-2">{conv.lastMessageTime}</span>
+                        <h3 className="font-medium text-sm text-neutral-900 truncate">
+                          {conv.userName}
+                        </h3>
+                        <span className="text-xs text-neutral-500 flex-shrink-0">
+                          {conv.lastMessageTime}
+                        </span>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm text-neutral-600 truncate">{conv.lastMessage}</p>
-                        {conv.unreadCount > 0 && (
-                          <span className="flex-shrink-0 ml-2 min-w-[20px] h-5 px-1.5 bg-primary text-white text-xs rounded-full flex items-center justify-center font-medium">
-                            {conv.unreadCount}
-                          </span>
-                        )}
-                      </div>
+                      <p className="text-sm text-neutral-600 truncate">
+                        {conv.lastMessage}
+                      </p>
                     </div>
+                    {conv.unreadCount > 0 && (
+                      <div className="flex-shrink-0 h-5 w-5 rounded-full bg-primary text-white text-xs flex items-center justify-center font-medium">
+                        {conv.unreadCount}
+                      </div>
+                    )}
                   </button>
                 ))
               )}
             </div>
           </div>
 
-          {/* Chat Area - Full height spanning */}
-          <div className={`flex-1 flex flex-col ${!selectedConversation && "hidden md:flex"}`}>
-            {selectedConversation ? (
+          {/* Chat Area */}
+          <div
+            className={`${
+              selectedConversation ? "flex" : "hidden md:flex"
+            } flex-1 flex-col`}
+          >
+            {selectedConversation && selectedUser ? (
               <>
-                {/* Chat Header - Fixed at top */}
-                <div className="flex-shrink-0 p-4 border-b border-neutral-100 flex items-center justify-between bg-white">
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => setSelectedConversation(null)}
-                      className="md:hidden p-2 hover:bg-neutral-100 rounded-lg transition-colors -ml-2"
-                    >
-                      <ArrowLeft className="h-5 w-5 text-neutral-700" />
-                    </button>
-                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-neutral-400 to-neutral-500 flex items-center justify-center text-white font-medium">
-                      {conversations.find(c => c.userId === selectedConversation)?.userName.charAt(0)}
+                {/* Chat Header - Fixed */}
+                <div className="p-4 border-b flex items-center gap-3 bg-white">
+                  <button
+                    onClick={() => setSelectedConversation(null)}
+                    className="md:hidden p-2 hover:bg-neutral-100 rounded-lg transition-colors"
+                  >
+                    <ArrowLeft className="h-5 w-5" />
+                  </button>
+                  <div className="relative flex-shrink-0">
+                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                      <span className="text-base font-semibold text-primary">
+                        {selectedUser.userName.charAt(0)}
+                      </span>
                     </div>
-                    <div>
-                      <h2 className="font-semibold text-sm text-neutral-900">
-                        {conversations.find(c => c.userId === selectedConversation)?.userName}
-                      </h2>
-                      <div className="flex items-center gap-1.5 text-xs text-neutral-500">
-                        <Circle className={`h-2 w-2 ${conversations.find(c => c.userId === selectedConversation)?.isOnline ? "fill-green-500 text-green-500" : "fill-neutral-400 text-neutral-400"}`} />
-                        <span>{conversations.find(c => c.userId === selectedConversation)?.isOnline ? "Online" : "Offline"}</span>
-                      </div>
-                    </div>
+                    {selectedUser.isOnline && (
+                      <Circle className="absolute bottom-0 right-0 h-2.5 w-2.5 fill-emerald-500 text-emerald-500 ring-2 ring-white" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-neutral-900">
+                      {selectedUser.userName}
+                    </h3>
+                    <p className="text-xs text-neutral-600">
+                      {selectedUser.isOnline ? "Online" : "Offline"}
+                    </p>
                   </div>
                 </div>
 
-                {/* Messages - Scrollable area between header and input */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-neutral-50">
-                  {messages.map((message) => {
-                    const isCurrentUser = message.senderId === "current-user";
+                {/* Messages - Scrollable */}
+                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                  {localMessages.map((msg) => {
+                    const isSent = msg.senderId === currentUserId;
                     return (
-                      <div key={message.id} className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}>
-                        <div className={`max-w-[75%] md:max-w-[60%]`}>
+                      <div
+                        key={msg.id}
+                        className={`flex ${isSent ? "justify-end" : "justify-start"}`}
+                      >
+                        <div
+                          className={`max-w-[70%] ${
+                            isSent
+                              ? "bg-gradient-to-r from-primary to-[#7c85d8] text-white"
+                              : "bg-white border border-neutral-200 text-neutral-900"
+                          } rounded-2xl px-4 py-2.5 shadow-sm`}
+                        >
+                          <p className="text-sm whitespace-pre-wrap break-words">
+                            {msg.message}
+                          </p>
                           <div
-                            className={`rounded-2xl px-4 py-2.5 ${
-                              isCurrentUser
-                                ? "bg-gradient-to-br from-primary to-primary/90 text-white"
-                                : "bg-white border border-neutral-200 text-neutral-900"
+                            className={`flex items-center gap-1 mt-1 text-xs ${
+                              isSent ? "text-white/70" : "text-neutral-500"
                             }`}
                           >
-                            <p className="text-sm leading-relaxed">{message.messageText}</p>
-                          </div>
-                          <div className={`flex items-center gap-1.5 mt-1.5 ${isCurrentUser ? "justify-end" : "justify-start"}`}>
-                            <span className="text-xs text-neutral-500">
-                              {formatTime(message.createdAt)}
-                            </span>
+                            <span>{formatTime(msg.createdAt)}</span>
+                            {isSent && (
+                              <>
+                                {msg.isRead ? (
+                                  <CheckCheck className="h-3 w-3" />
+                                ) : (
+                                  <Check className="h-3 w-3" />
+                                )}
+                              </>
+                            )}
                           </div>
                         </div>
                       </div>
                     );
                   })}
+
+                  {/* Typing Indicator */}
+                  {isUserTyping && (
+                    <div className="flex justify-start">
+                      <div className="bg-white border border-neutral-200 rounded-2xl px-4 py-2.5 shadow-sm">
+                        <div className="flex gap-1">
+                          <div className="h-2 w-2 bg-neutral-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                          <div className="h-2 w-2 bg-neutral-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                          <div className="h-2 w-2 bg-neutral-400 rounded-full animate-bounce"></div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div ref={messagesEndRef} />
                 </div>
 
-                {/* Message Input - Fixed at bottom */}
-                <div className="flex-shrink-0 p-4 border-t border-neutral-100 bg-white">
-                  <div className="flex items-end gap-3">
-                    <div className="flex-1">
-                      <textarea
-                        value={messageText}
-                        onChange={(e) => setMessageText(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" && !e.shiftKey) {
-                            e.preventDefault();
-                            handleSendMessage();
-                          }
-                        }}
-                        placeholder="Type a message..."
-                        rows={1}
-                        className="w-full px-4 py-3 text-sm border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary bg-neutral-50 resize-none transition-all"
-                        style={{ minHeight: "44px", maxHeight: "120px" }}
-                      />
-                    </div>
+                {/* Message Input - Fixed */}
+                <div className="p-4 border-t bg-white">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={messageText}
+                      onChange={(e) => handleTyping(e.target.value)}
+                      onKeyPress={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSendMessage();
+                        }
+                      }}
+                      placeholder="Type a message..."
+                      className="flex-1 px-4 py-2.5 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
+                    />
                     <button
                       onClick={handleSendMessage}
                       disabled={!messageText.trim()}
-                      className="p-3 bg-gradient-to-br from-primary to-primary/90 hover:brightness-110 text-white rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                      className="px-4 py-2.5 bg-gradient-to-r from-primary to-[#7c85d8] text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <Send className="h-5 w-5" />
+                      <Send className="h-4 w-4" />
                     </button>
                   </div>
-                  <p className="text-xs text-neutral-500 mt-2">Press Enter to send, Shift+Enter for new line</p>
                 </div>
               </>
             ) : (
-              <div className="flex-1 flex items-center justify-center bg-neutral-50">
-                <div className="text-center max-w-sm px-6">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-neutral-100 mb-4">
-                    <MessageCircle className="h-8 w-8 text-neutral-400" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-neutral-900 mb-2">
-                    Select a conversation
-                  </h3>
-                  <p className="text-sm text-neutral-600 leading-relaxed">
-                    Choose a conversation from the list to start messaging
+              <div className="flex-1 flex items-center justify-center text-neutral-500">
+                <div className="text-center">
+                  <MessageCircle className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                  <p className="text-lg font-medium">Select a conversation</p>
+                  <p className="text-sm">
+                    Choose a conversation to start messaging
                   </p>
                 </div>
               </div>
@@ -334,8 +492,6 @@ export default function MessagesPage() {
           </div>
         </div>
       </div>
-      {/* Bottom padding for mobile bottom nav */}
-      <div className="h-16 md:hidden flex-shrink-0"></div>
     </div>
   );
 }
