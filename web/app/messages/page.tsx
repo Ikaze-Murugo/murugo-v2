@@ -159,13 +159,16 @@ export default function MessagesPage() {
   );
 
   return (
-    <div className="h-screen bg-neutral-50 flex flex-col pt-14 md:pt-0">
-      <div className="flex-1 flex flex-col md:max-w-7xl md:mx-auto md:px-6 md:pt-6 md:pb-6 overflow-hidden">
-        <div className="flex-1 bg-white md:rounded-xl border border-neutral-200 overflow-hidden flex flex-col md:flex-row shadow-sm">
+    // Full viewport height with fixed positioning for mobile
+    <div className="fixed inset-0 bg-neutral-50 flex flex-col md:relative md:min-h-screen">
+      {/* Mobile: Account for fixed header, Desktop: Normal padding */}
+      <div className="flex-1 flex flex-col pt-14 md:pt-6 md:max-w-7xl md:mx-auto md:px-6 md:pb-6 overflow-hidden">
+        {/* Main messaging container - WhatsApp-like full height */}
+        <div className="flex-1 bg-white md:rounded-xl border-0 md:border md:border-neutral-200 overflow-hidden flex flex-col md:flex-row md:shadow-sm">
           {/* Conversations List */}
-          <div className={`w-full md:w-80 lg:w-96 border-r border-neutral-200 flex flex-col ${selectedConversation && "hidden md:flex"}`}>
+          <div className={`w-full md:w-80 lg:w-96 md:border-r border-neutral-200 flex flex-col ${selectedConversation && "hidden md:flex"}`}>
             {/* Header */}
-            <div className="p-5 border-b border-neutral-100">
+            <div className="flex-shrink-0 p-5 border-b border-neutral-100 bg-white">
               <h1 className="text-xl font-semibold text-neutral-900 mb-4">Messages</h1>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
@@ -174,12 +177,12 @@ export default function MessagesPage() {
                   placeholder="Search conversations..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 text-sm border border-neutral-200 rounded-lg focus:ring-2 focus:ring-primary-200 focus:border-primary-500 bg-neutral-50 text-neutral-900 transition-all"
+                  className="w-full pl-10 pr-4 py-2.5 text-sm border border-neutral-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary bg-neutral-50 text-neutral-900 transition-all"
                 />
               </div>
             </div>
 
-            {/* Conversations */}
+            {/* Conversations - Scrollable */}
             <div className="flex-1 overflow-y-auto">
               {isLoading ? (
                 <div className="flex items-center justify-center h-full">
@@ -215,7 +218,7 @@ export default function MessagesPage() {
                       <div className="flex items-center justify-between">
                         <p className="text-sm text-neutral-600 truncate">{conv.lastMessage}</p>
                         {conv.unreadCount > 0 && (
-                          <span className="flex-shrink-0 ml-2 min-w-[20px] h-5 px-1.5 bg-primary-500 text-white text-xs rounded-full flex items-center justify-center font-medium">
+                          <span className="flex-shrink-0 ml-2 min-w-[20px] h-5 px-1.5 bg-primary text-white text-xs rounded-full flex items-center justify-center font-medium">
                             {conv.unreadCount}
                           </span>
                         )}
@@ -227,16 +230,16 @@ export default function MessagesPage() {
             </div>
           </div>
 
-          {/* Chat Area */}
+          {/* Chat Area - Full height spanning */}
           <div className={`flex-1 flex flex-col ${!selectedConversation && "hidden md:flex"}`}>
             {selectedConversation ? (
               <>
-                {/* Chat Header - Fixed */}
+                {/* Chat Header - Fixed at top */}
                 <div className="flex-shrink-0 p-4 border-b border-neutral-100 flex items-center justify-between bg-white">
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => setSelectedConversation(null)}
-                      className="md:hidden p-2 hover:bg-neutral-100 rounded-lg transition-colors"
+                      className="md:hidden p-2 hover:bg-neutral-100 rounded-lg transition-colors -ml-2"
                     >
                       <ArrowLeft className="h-5 w-5 text-neutral-700" />
                     </button>
@@ -255,7 +258,7 @@ export default function MessagesPage() {
                   </div>
                 </div>
 
-                {/* Messages - Scrollable */}
+                {/* Messages - Scrollable area between header and input */}
                 <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-neutral-50">
                   {messages.map((message) => {
                     const isCurrentUser = message.senderId === "current-user";
@@ -265,7 +268,7 @@ export default function MessagesPage() {
                           <div
                             className={`rounded-2xl px-4 py-2.5 ${
                               isCurrentUser
-                                ? "bg-gradient-to-br from-primary-500 to-primary-600 text-white"
+                                ? "bg-gradient-to-br from-primary to-primary/90 text-white"
                                 : "bg-white border border-neutral-200 text-neutral-900"
                             }`}
                           >
@@ -283,7 +286,7 @@ export default function MessagesPage() {
                   <div ref={messagesEndRef} />
                 </div>
 
-                {/* Message Input - Fixed */}
+                {/* Message Input - Fixed at bottom */}
                 <div className="flex-shrink-0 p-4 border-t border-neutral-100 bg-white">
                   <div className="flex items-end gap-3">
                     <div className="flex-1">
@@ -298,14 +301,14 @@ export default function MessagesPage() {
                         }}
                         placeholder="Type a message..."
                         rows={1}
-                        className="w-full px-4 py-3 text-sm border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-200 focus:border-primary-500 bg-neutral-50 resize-none transition-all"
+                        className="w-full px-4 py-3 text-sm border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary bg-neutral-50 resize-none transition-all"
                         style={{ minHeight: "44px", maxHeight: "120px" }}
                       />
                     </div>
                     <button
                       onClick={handleSendMessage}
                       disabled={!messageText.trim()}
-                      className="p-3 bg-gradient-to-br from-primary-500 to-primary-600 hover:brightness-110 text-white rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                      className="p-3 bg-gradient-to-br from-primary to-primary/90 hover:brightness-110 text-white rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
                     >
                       <Send className="h-5 w-5" />
                     </button>
@@ -331,6 +334,8 @@ export default function MessagesPage() {
           </div>
         </div>
       </div>
+      {/* Bottom padding for mobile bottom nav */}
+      <div className="h-16 md:hidden flex-shrink-0"></div>
     </div>
   );
 }
