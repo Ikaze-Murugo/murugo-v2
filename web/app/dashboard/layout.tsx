@@ -18,6 +18,7 @@ import {
   Star,
   Users,
   MessageCircle,
+  BarChart3,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -34,7 +35,10 @@ const listerNavigation = [
   { name: "Add Property", href: "/dashboard/listings/new", icon: PlusCircle },
 ];
 
-const adminNavigation = [{ name: "Admin", href: "/admin", icon: Shield }];
+const adminNavigation = [
+  { name: "Admin", href: "/admin", icon: Shield },
+  { name: "Analytics", href: "/dashboard/admin", icon: BarChart3 },
+];
 
 const adminSectionNavigation = [
   { name: "Approve properties", href: "/admin?tab=approvals", icon: CheckCircle },
