@@ -2,7 +2,6 @@
 
 import { PropertyCard } from "@/components/property/property-card";
 import { PropertyCardHorizontal } from "@/components/property/property-card-horizontal";
-import { PropertyFilters } from "@/components/property/property-filters";
 import { Button } from "@/components/ui/button";
 import { propertyApi } from "@/lib/api/endpoints";
 import { PropertyFilters as Filters } from "@/lib/types";
@@ -10,6 +9,14 @@ import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import dynamic from "next/dynamic";
+
+const MapToggle = dynamic(() => import("@/components/map/MapToggle"), {
+  ssr: false,
+  loading: () => <div className="text-center py-8">Loading map...</div>,
+});
+import EnhancedSearch from "@/components/search/EnhancedSearch";
+import SavedSearches, { useSaveSearch } from "@/components/search/SavedSearches";
 
 function PropertiesPageContent() {
   const searchParams = useSearchParams();
@@ -43,6 +50,7 @@ function PropertiesPageContent() {
   };
   
   const [filters, setFilters] = useState<Filters>(getInitialFilters());
+  const [mapBounds, setMapBounds] = useState<{ north: number; south: number; east: number; west: number } | null>(null);
   
   // Update filters when URL parameters change
   useEffect(() => {
@@ -66,6 +74,22 @@ function PropertiesPageContent() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const handleMapBoundsChange = (bounds: { north: number; south: number; east: number; west: number }) => {
+    setMapBounds(bounds);
+    // Optionally filter properties by map bounds
+    // This would require backend support to filter by coordinates
+  };
+
+  const { saveSearch } = useSaveSearch();
+
+  const handleSaveSearch = () => {
+    const searchName = prompt("Enter a name for this search:");
+    if (searchName) {
+      saveSearch(searchName, filters);
+      alert("Search saved successfully!");
+    }
+  };
+
   return (
     <div className="min-h-screen py-6 px-4 bg-gradient-to-b from-[#fafaf8] to-[#f5f5f3]">
       <div className="max-w-7xl mx-auto">
@@ -77,9 +101,16 @@ function PropertiesPageContent() {
           </p>
         </div>
 
-        {/* Filters */}
+        {/* Saved Searches */}
+        <SavedSearches onApplySearch={handleFiltersChange} />
+
+        {/* Enhanced Search */}
         <div className="mb-6">
-          <PropertyFilters filters={filters} onFiltersChange={handleFiltersChange} />
+          <EnhancedSearch
+            filters={filters}
+            onFiltersChange={handleFiltersChange}
+            onSaveSearch={handleSaveSearch}
+          />
         </div>
 
         {/* Loading State */}
@@ -97,21 +128,29 @@ function PropertiesPageContent() {
           </div>
         )}
 
-        {/* Properties Grid */}
+        {/* Properties with Map Toggle */}
         {!isLoading && !error && properties.length > 0 && (
           <>
-            {/* Desktop: Grid Layout */}
-            <div className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
-              {properties.map((property) => (
-                <PropertyCard key={property.id} property={property} />
-              ))}
-            </div>
-            {/* Mobile: Horizontal Cards */}
-            <div className="md:hidden space-y-4 mb-6">
-              {properties.map((property) => (
-                <PropertyCardHorizontal key={property.id} property={property} />
-              ))}
-            </div>
+            <MapToggle
+              properties={properties}
+              onBoundsChange={handleMapBoundsChange}
+              listView={
+                <>
+                  {/* Desktop: Grid Layout */}
+                  <div className="hidden md:grid grid-cols-1 gap-5 mb-6">
+                    {properties.map((property) => (
+                      <PropertyCard key={property.id} property={property} />
+                    ))}
+                  </div>
+                  {/* Mobile: Horizontal Cards */}
+                  <div className="md:hidden space-y-4 mb-6">
+                    {properties.map((property) => (
+                      <PropertyCardHorizontal key={property.id} property={property} />
+                    ))}
+                  </div>
+                </>
+              }
+            />
 
             {/* Pagination */}
             {pagination && pagination.totalPages > 1 && (
