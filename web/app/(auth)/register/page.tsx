@@ -9,17 +9,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { UserRole, ProfileType } from "@/lib/types";
-import { Search, Building2 } from "lucide-react";
+import { Search, Building2, User, Mail, Phone, Lock, ArrowRight } from "lucide-react";
 
 const registerSchema = z
   .object({
@@ -119,20 +111,19 @@ function RegisterForm() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Create an account</CardTitle>
-        <CardDescription>
-          Sign up to start listing or finding properties
-        </CardDescription>
-      </CardHeader>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <CardContent className="space-y-4">
+    <div className="w-full max-w-md">
+      {/* Header */}
+      <div className="text-center mb-8">
+        <h1 className="text-2xl font-semibold text-neutral-900 mb-2">Create an account</h1>
+        <p className="text-sm text-neutral-600">Sign up to start listing or finding properties</p>
+      </div>
+
+      {/* Form Card */}
+      <div className="bg-white rounded-xl border border-neutral-200 p-8 shadow-sm">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           {/* Role selection */}
-          <div>
-            <label className="text-sm font-medium mb-2 block">
-              I want to
-            </label>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-neutral-700">I want to</label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {ROLE_OPTIONS.map((opt) => {
                 const Icon = opt.icon;
@@ -143,17 +134,19 @@ function RegisterForm() {
                     type="button"
                     onClick={() => setValue("role", opt.value)}
                     className={`
-                      flex flex-col items-start p-4 rounded-lg border-2 text-left transition-colors
+                      flex flex-col items-start p-4 rounded-lg border-2 text-left transition-all
                       ${
                         isSelected
-                          ? "border-[#949DDB] bg-[#949DDB] text-white"
-                          : "border-muted hover:border-muted-foreground/50"
+                          ? "border-primary bg-gradient-to-br from-primary/5 to-primary/10 shadow-sm"
+                          : "border-neutral-200 hover:border-neutral-300"
                       }
                     `}
                   >
-                    <Icon className={`h-5 w-5 mb-2 ${isSelected ? "text-white" : "text-primary"}`} />
-                    <span className="font-medium">{opt.label}</span>
-                    <span className={`text-xs mt-1 ${isSelected ? "text-white/90" : "text-muted-foreground"}`}>
+                    <Icon className={`h-5 w-5 mb-2 ${isSelected ? "text-primary" : "text-neutral-400"}`} />
+                    <span className={`font-medium text-sm ${isSelected ? "text-neutral-900" : "text-neutral-700"}`}>
+                      {opt.label}
+                    </span>
+                    <span className="text-xs mt-1 text-neutral-500">
                       {opt.description}
                     </span>
                   </button>
@@ -162,19 +155,17 @@ function RegisterForm() {
             </div>
             <input type="hidden" {...register("role")} />
             {errors.role && (
-              <p className="text-sm text-destructive mt-1">{errors.role.message}</p>
+              <p className="text-xs text-red-600">{errors.role.message}</p>
             )}
           </div>
 
           {/* Lister type (only when role = lister) */}
           {isLister && (
-            <div>
-              <label className="text-sm font-medium mb-2 block">
-                Lister type
-              </label>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-neutral-700">Lister type</label>
               <select
                 {...register("profileType")}
-                className="w-full px-3 py-2 border rounded-md bg-background"
+                className="w-full px-3 py-2.5 text-sm bg-neutral-50 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
               >
                 {PROFILE_TYPE_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -183,67 +174,125 @@ function RegisterForm() {
                 ))}
               </select>
               {errors.profileType && (
-                <p className="text-sm text-destructive mt-1">
-                  {errors.profileType.message}
-                </p>
+                <p className="text-xs text-red-600">{errors.profileType.message}</p>
               )}
             </div>
           )}
 
-          <Input
-            label="Full name"
-            type="text"
-            placeholder="Your name or company name"
-            error={errors.name?.message}
-            {...register("name")}
-            required
-          />
-          <Input
-            label="Email"
-            type="email"
-            placeholder="you@example.com"
-            error={errors.email?.message}
-            {...register("email")}
-            required
-          />
-          <Input
-            label="Phone Number"
-            type="tel"
-            placeholder="+250 788 123 456"
-            error={errors.phone?.message}
-            {...register("phone")}
-            required
-          />
-          <Input
-            label="Password"
-            type="password"
-            placeholder="••••••••"
-            error={errors.password?.message}
-            {...register("password")}
-            required
-          />
-          <Input
-            label="Confirm Password"
-            type="password"
-            placeholder="••••••••"
-            error={errors.confirmPassword?.message}
-            {...register("confirmPassword")}
-            required
-          />
-        </CardContent>
-        <CardFooter className="flex-col space-y-4">
-          <Button type="submit" className="w-full" loading={isLoading}>
-            Create account
+          {/* Full Name */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-neutral-700 flex items-center gap-2">
+              <User className="h-4 w-4" />
+              Full Name
+            </label>
+            <Input
+              type="text"
+              placeholder="Your name or company name"
+              {...register("name")}
+              className="bg-neutral-50 border-neutral-200 h-11"
+            />
+            {errors.name && (
+              <p className="text-xs text-red-600">{errors.name.message}</p>
+            )}
+          </div>
+
+          {/* Email */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-neutral-700 flex items-center gap-2">
+              <Mail className="h-4 w-4" />
+              Email
+            </label>
+            <Input
+              type="email"
+              placeholder="you@example.com"
+              {...register("email")}
+              className="bg-neutral-50 border-neutral-200 h-11"
+            />
+            {errors.email && (
+              <p className="text-xs text-red-600">{errors.email.message}</p>
+            )}
+          </div>
+
+          {/* Phone */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-neutral-700 flex items-center gap-2">
+              <Phone className="h-4 w-4" />
+              Phone Number
+            </label>
+            <Input
+              type="tel"
+              placeholder="+250 788 123 456"
+              {...register("phone")}
+              className="bg-neutral-50 border-neutral-200 h-11"
+            />
+            {errors.phone && (
+              <p className="text-xs text-red-600">{errors.phone.message}</p>
+            )}
+          </div>
+
+          {/* Password */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-neutral-700 flex items-center gap-2">
+              <Lock className="h-4 w-4" />
+              Password
+            </label>
+            <Input
+              type="password"
+              placeholder="••••••••"
+              {...register("password")}
+              className="bg-neutral-50 border-neutral-200 h-11"
+            />
+            {errors.password && (
+              <p className="text-xs text-red-600">{errors.password.message}</p>
+            )}
+          </div>
+
+          {/* Confirm Password */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-neutral-700 flex items-center gap-2">
+              <Lock className="h-4 w-4" />
+              Confirm Password
+            </label>
+            <Input
+              type="password"
+              placeholder="••••••••"
+              {...register("confirmPassword")}
+              className="bg-neutral-50 border-neutral-200 h-11"
+            />
+            {errors.confirmPassword && (
+              <p className="text-xs text-red-600">{errors.confirmPassword.message}</p>
+            )}
+          </div>
+
+          {/* Submit Button */}
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="w-full h-11 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white font-medium mt-6"
+          >
+            {isLoading ? (
+              <span className="flex items-center gap-2">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                Creating account...
+              </span>
+            ) : (
+              <span className="flex items-center gap-2">
+                Create account
+                <ArrowRight className="h-4 w-4" />
+              </span>
+            )}
           </Button>
-          <p className="text-sm text-center text-muted-foreground">
-            Already have an account?{" "}
-            <Link href="/login" className="text-primary hover:underline">
-              Sign in
-            </Link>
-          </p>
-        </CardFooter>
-      </form>
-    </Card>
+        </form>
+      </div>
+
+      {/* Sign In Link */}
+      <p className="text-sm text-center text-neutral-600 mt-6">
+        Already have an account?{" "}
+        <Link href="/login" className="text-primary hover:text-primary/80 font-medium transition-colors">
+          Sign in
+        </Link>
+      </p>
+    </div>
   );
 }
 
@@ -251,11 +300,9 @@ export default function RegisterPage() {
   return (
     <Suspense
       fallback={
-        <Card>
-          <CardContent className="flex items-center justify-center min-h-[400px]">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent" />
-          </CardContent>
-        </Card>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent" />
+        </div>
       }
     >
       <RegisterForm />

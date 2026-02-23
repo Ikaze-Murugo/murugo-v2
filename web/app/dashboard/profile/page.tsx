@@ -8,9 +8,8 @@ import * as z from "zod";
 import { userApi } from "@/lib/api/endpoints";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/lib/hooks/use-toast";
-import { User, Mail, Phone, Shield, Edit, Save, X } from "lucide-react";
+import { User, Mail, Phone, Shield, Edit, Save, X, Building2, MessageSquare } from "lucide-react";
 
 const profileSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -102,8 +101,8 @@ export default function ProfilePage() {
       userApi.updatePassword(data.currentPassword, data.newPassword),
     onSuccess: () => {
       toast({
-        title: "Password changed!",
-        description: "Your password has been updated successfully.",
+        title: "Password updated!",
+        description: "Your password has been changed successfully.",
       });
       resetPassword();
       setIsChangingPassword(false);
@@ -111,7 +110,7 @@ export default function ProfilePage() {
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: error.message || "Failed to change password. Please check your current password.",
+        description: error.message || "Failed to update password. Please try again.",
         variant: "destructive",
       });
     },
@@ -125,308 +124,277 @@ export default function ProfilePage() {
     updatePasswordMutation.mutate(data);
   };
 
-  const handleCancelEdit = () => {
-    resetProfile();
-    setIsEditingProfile(false);
-  };
-
   if (isLoading) {
     return (
-      <div className="text-center py-12">
+      <div className="flex items-center justify-center min-h-[400px]">
         <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent" />
-        <p className="mt-4 text-muted-foreground">Loading profile...</p>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-red-500 mb-4">Failed to load profile</p>
-        <Button onClick={() => queryClient.invalidateQueries({ queryKey: ["profile"] })}>
-          Try Again
-        </Button>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6 pb-20 md:pb-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold mb-2">Profile</h1>
-        <p className="text-muted-foreground">
-          Manage your account information and settings
-        </p>
+      <div className="space-y-2">
+        <h1 className="text-2xl font-semibold text-neutral-900">Profile Settings</h1>
+        <p className="text-sm text-neutral-600">Manage your account information and preferences</p>
       </div>
 
-      {/* Profile Information */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Profile Information</CardTitle>
+      {/* Profile Information Card */}
+      <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
+        <div className="px-6 py-4 border-b border-neutral-100 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
+              <User className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-base font-medium text-neutral-900">Personal Information</h2>
+              <p className="text-xs text-neutral-500">Update your personal details</p>
+            </div>
+          </div>
           {!isEditingProfile && (
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={() => setIsEditingProfile(true)}
+              className="text-neutral-600 hover:text-neutral-900"
             >
               <Edit className="h-4 w-4 mr-2" />
               Edit
             </Button>
           )}
-        </CardHeader>
-        <CardContent>
-          {isEditingProfile ? (
-            <form onSubmit={handleSubmitProfile(onSubmitProfile)} className="space-y-4">
-              <Input
-                label="Email"
-                type="email"
-                placeholder="your@email.com"
-                error={profileErrors.email?.message}
-                {...registerProfile("email")}
-                required
-              />
+        </div>
 
+        <form onSubmit={handleSubmitProfile(onSubmitProfile)} className="p-6 space-y-5">
+          <div className="grid gap-5 md:grid-cols-2">
+            {/* Name */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-neutral-700">Full Name</label>
               <Input
-                label="Phone"
-                type="tel"
-                placeholder="+250 XXX XXX XXX"
-                error={profileErrors.phone?.message}
-                {...registerProfile("phone")}
-              />
-
-              <Input
-                label="Full Name"
-                placeholder="Your full name"
-                error={profileErrors.profile?.name?.message}
                 {...registerProfile("profile.name")}
+                disabled={!isEditingProfile}
+                placeholder="Enter your full name"
+                className="bg-neutral-50 border-neutral-200"
               />
+              {profileErrors.profile?.name && (
+                <p className="text-xs text-red-600">{profileErrors.profile.name.message}</p>
+              )}
+            </div>
 
+            {/* Email */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-neutral-700 flex items-center gap-2">
+                <Mail className="h-4 w-4" />
+                Email
+              </label>
               <Input
-                label="Company"
-                placeholder="Your company name (optional)"
-                error={profileErrors.profile?.company?.message}
-                {...registerProfile("profile.company")}
+                {...registerProfile("email")}
+                type="email"
+                disabled
+                className="bg-neutral-100 border-neutral-200 cursor-not-allowed"
               />
+              <p className="text-xs text-neutral-500">Email cannot be changed</p>
+            </div>
 
+            {/* Phone */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-neutral-700 flex items-center gap-2">
+                <Phone className="h-4 w-4" />
+                Phone Number
+              </label>
               <Input
-                label="WhatsApp"
+                {...registerProfile("phone")}
+                disabled={!isEditingProfile}
                 placeholder="+250 XXX XXX XXX"
-                error={profileErrors.profile?.whatsapp?.message}
-                {...registerProfile("profile.whatsapp")}
+                className="bg-neutral-50 border-neutral-200"
               />
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-2">Bio</label>
-                <textarea
-                  className="w-full px-3 py-2 border rounded-md min-h-[100px]"
-                  placeholder="Tell us about yourself..."
-                  {...registerProfile("profile.bio")}
+            {/* WhatsApp */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-neutral-700 flex items-center gap-2">
+                <MessageSquare className="h-4 w-4" />
+                WhatsApp Number
+              </label>
+              <Input
+                {...registerProfile("profile.whatsapp")}
+                disabled={!isEditingProfile}
+                placeholder="+250 XXX XXX XXX"
+                className="bg-neutral-50 border-neutral-200"
+              />
+            </div>
+
+            {/* Company */}
+            <div className="space-y-2 md:col-span-2">
+              <label className="text-sm font-medium text-neutral-700 flex items-center gap-2">
+                <Building2 className="h-4 w-4" />
+                Company Name
+              </label>
+              <Input
+                {...registerProfile("profile.company")}
+                disabled={!isEditingProfile}
+                placeholder="Your company or agency name"
+                className="bg-neutral-50 border-neutral-200"
+              />
+            </div>
+
+            {/* Bio */}
+            <div className="space-y-2 md:col-span-2">
+              <label className="text-sm font-medium text-neutral-700">Bio</label>
+              <textarea
+                {...registerProfile("profile.bio")}
+                disabled={!isEditingProfile}
+                placeholder="Tell us about yourself..."
+                rows={3}
+                className="w-full px-3 py-2 text-sm bg-neutral-50 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary disabled:opacity-60 disabled:cursor-not-allowed"
+              />
+            </div>
+          </div>
+
+          {isEditingProfile && (
+            <div className="flex items-center gap-3 pt-2">
+              <Button
+                type="submit"
+                disabled={updateProfileMutation.isPending}
+                className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary"
+              >
+                <Save className="h-4 w-4 mr-2" />
+                {updateProfileMutation.isPending ? "Saving..." : "Save Changes"}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  setIsEditingProfile(false);
+                  resetProfile();
+                }}
+                className="text-neutral-600 hover:text-neutral-900"
+              >
+                <X className="h-4 w-4 mr-2" />
+                Cancel
+              </Button>
+            </div>
+          )}
+        </form>
+      </div>
+
+      {/* Account Role */}
+      <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
+        <div className="px-6 py-4 border-b border-neutral-100 flex items-center gap-3">
+          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500/10 to-blue-500/5 flex items-center justify-center">
+            <Shield className="h-5 w-5 text-blue-600" />
+          </div>
+          <div>
+            <h2 className="text-base font-medium text-neutral-900">Account Type</h2>
+            <p className="text-xs text-neutral-500">Your current account role</p>
+          </div>
+        </div>
+        <div className="p-6">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-neutral-50 border border-neutral-200 rounded-lg">
+            <span className="text-sm font-medium text-neutral-900 capitalize">{user?.role || "User"}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Security - Change Password */}
+      <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
+        <div className="px-6 py-4 border-b border-neutral-100 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-red-500/10 to-red-500/5 flex items-center justify-center">
+              <Shield className="h-5 w-5 text-red-600" />
+            </div>
+            <div>
+              <h2 className="text-base font-medium text-neutral-900">Security</h2>
+              <p className="text-xs text-neutral-500">Update your password</p>
+            </div>
+          </div>
+          {!isChangingPassword && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsChangingPassword(true)}
+              className="text-neutral-600 hover:text-neutral-900"
+            >
+              <Edit className="h-4 w-4 mr-2" />
+              Change Password
+            </Button>
+          )}
+        </div>
+
+        {isChangingPassword && (
+          <form onSubmit={handleSubmitPassword(onSubmitPassword)} className="p-6 space-y-5">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-neutral-700">Current Password</label>
+                <Input
+                  {...registerPassword("currentPassword")}
+                  type="password"
+                  placeholder="Enter current password"
+                  className="bg-neutral-50 border-neutral-200"
                 />
-                {profileErrors.profile?.bio && (
-                  <p className="text-sm text-red-500 mt-1">
-                    {profileErrors.profile.bio.message}
-                  </p>
+                {passwordErrors.currentPassword && (
+                  <p className="text-xs text-red-600">{passwordErrors.currentPassword.message}</p>
                 )}
               </div>
 
-              <div className="flex items-center gap-4">
-                <Button
-                  type="submit"
-                  disabled={updateProfileMutation.isPending}
-                >
-                  {updateProfileMutation.isPending ? (
-                    <>
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-solid border-current border-r-transparent mr-2" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="h-4 w-4 mr-2" />
-                      Save Changes
-                    </>
-                  )}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleCancelEdit}
-                >
-                  <X className="h-4 w-4 mr-2" />
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          ) : (
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                  <User className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <p className="font-semibold">
-                    {user.profile?.name || "No name set"}
-                  </p>
-                  <p className="text-sm text-muted-foreground capitalize">
-                    {user.role}
-                  </p>
-                </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-neutral-700">New Password</label>
+                <Input
+                  {...registerPassword("newPassword")}
+                  type="password"
+                  placeholder="Enter new password"
+                  className="bg-neutral-50 border-neutral-200"
+                />
+                {passwordErrors.newPassword && (
+                  <p className="text-xs text-red-600">{passwordErrors.newPassword.message}</p>
+                )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
-                <div className="flex items-start gap-3">
-                  <Mail className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium">Email</p>
-                    <p className="text-sm text-muted-foreground">{user.email}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <Phone className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium">Phone</p>
-                    <p className="text-sm text-muted-foreground">
-                      {user.phone || "Not set"}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <Shield className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium">Company</p>
-                    <p className="text-sm text-muted-foreground">
-                      {user.profile?.companyName ?? "Not set"}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <Phone className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium">WhatsApp</p>
-                    <p className="text-sm text-muted-foreground">
-                      {user.whatsappNumber || "Not set"}
-                    </p>
-                  </div>
-                </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-neutral-700">Confirm New Password</label>
+                <Input
+                  {...registerPassword("confirmPassword")}
+                  type="password"
+                  placeholder="Confirm new password"
+                  className="bg-neutral-50 border-neutral-200"
+                />
+                {passwordErrors.confirmPassword && (
+                  <p className="text-xs text-red-600">{passwordErrors.confirmPassword.message}</p>
+                )}
               </div>
-
-              {user.profile?.bio && (
-                <div className="pt-4 border-t">
-                  <p className="text-sm font-medium mb-2">Bio</p>
-                  <p className="text-sm text-muted-foreground">{user.profile.bio}</p>
-                </div>
-              )}
             </div>
-          )}
-        </CardContent>
-      </Card>
 
-      {/* Change Password */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Change Password</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {!isChangingPassword ? (
-            <div>
-              <p className="text-sm text-muted-foreground mb-4">
-                Update your password to keep your account secure
-              </p>
+            <div className="flex items-center gap-3 pt-2">
               <Button
-                variant="outline"
-                onClick={() => setIsChangingPassword(true)}
+                type="submit"
+                disabled={updatePasswordMutation.isPending}
+                className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary"
               >
-                Change Password
+                <Save className="h-4 w-4 mr-2" />
+                {updatePasswordMutation.isPending ? "Updating..." : "Update Password"}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  setIsChangingPassword(false);
+                  resetPassword();
+                }}
+                className="text-neutral-600 hover:text-neutral-900"
+              >
+                <X className="h-4 w-4 mr-2" />
+                Cancel
               </Button>
             </div>
-          ) : (
-            <form onSubmit={handleSubmitPassword(onSubmitPassword)} className="space-y-4">
-              <Input
-                label="Current Password"
-                type="password"
-                placeholder="Enter your current password"
-                error={passwordErrors.currentPassword?.message}
-                {...registerPassword("currentPassword")}
-                required
-              />
+          </form>
+        )}
 
-              <Input
-                label="New Password"
-                type="password"
-                placeholder="Enter your new password"
-                error={passwordErrors.newPassword?.message}
-                {...registerPassword("newPassword")}
-                required
-              />
-
-              <Input
-                label="Confirm New Password"
-                type="password"
-                placeholder="Confirm your new password"
-                error={passwordErrors.confirmPassword?.message}
-                {...registerPassword("confirmPassword")}
-                required
-              />
-
-              <div className="flex items-center gap-4">
-                <Button
-                  type="submit"
-                  disabled={updatePasswordMutation.isPending}
-                >
-                  {updatePasswordMutation.isPending ? (
-                    <>
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-solid border-current border-r-transparent mr-2" />
-                      Updating...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="h-4 w-4 mr-2" />
-                      Update Password
-                    </>
-                  )}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    resetPassword();
-                    setIsChangingPassword(false);
-                  }}
-                >
-                  <X className="h-4 w-4 mr-2" />
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Account Details */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Account Details</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Account ID</span>
-              <span className="font-mono">{user.id}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Role</span>
-              <span className="capitalize">{user.role}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Member Since</span>
-              <span>{new Date(user.createdAt).toLocaleDateString()}</span>
-            </div>
+        {!isChangingPassword && (
+          <div className="p-6">
+            <p className="text-sm text-neutral-600">••••••••</p>
           </div>
-        </CardContent>
-      </Card>
+        )}
+      </div>
     </div>
   );
 }
